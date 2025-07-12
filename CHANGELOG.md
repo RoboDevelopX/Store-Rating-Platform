@@ -1,39 +1,48 @@
-# Changes to PostCSS Cascade Layers
+# Changes to PostCSS OKLab Function
 
-### 1.1.1 (September 17, 2022)
+### 1.1.1 (July 8, 2022)
 
-- Fix pre-defined layer order in nested `@layer` rules.
+- Fix case insensitive matching.
 
-### 1.1.0 (September 14, 2022)
+### 1.1.0 (April 4, 2022)
 
-- Add support for `@scope` and `@container` as parent rules for `@layer`
+- Allow percentage and number units in more color components.
 
-### 1.0.6 (September 7, 2022)
+```css
+.percentages {
+	color-1: oklab(40% 0.309% 0.975%);
+	color-2: oklch(40% 31.718385875% 34.568626);
 
-- Fix broken `@keyframes` in `@layer`.
+	/* becomes */
 
-### 1.0.5 (July 8, 2022)
+	color-1: rgb(73, 71, 69);
+	color-1: color(display-p3 0.28515 0.27983 0.27246);
+	color-2: rgb(126, 37, 15);
+	color-2: color(display-p3 0.45368 0.16978 0.09411);
+}
 
-- Fix case insensitive `@layer` matching (`@LaYeR`).
-- Updated `@csstools/selector-specificity` to `2.0.2` (patch)
+.numbers {
+	color-1: oklab(0.40 0.001236 0.0039);
+	color-2: oklch(0.40 0.1268735435 34.568626);
 
-### 1.0.4 (June 23, 2022)
+	/* becomes */
 
-- Fix selector order with any pseudo element. This plugin will no longer re-order selectors.
+	color-1: rgb(73, 71, 69);
+	color-1: color(display-p3 0.28515 0.27983 0.27246);
+	color-2: rgb(126, 37, 15);
+	color-2: color(display-p3 0.45368 0.16978 0.09411);
+}
+```
 
-### 1.0.3 (June 4, 2022)
+### 1.0.2 (March 8, 2022)
 
-- Update `@csstools/selector-specificity` (major)
+- Fix gamut mapping giving overly unsaturated colors.
+- Implement powerless color components in gamut mapping.
 
-### 1.0.2 (May 20, 2022)
+### 1.0.1 (February 12, 2022)
 
-- Use only simple `:not(#\#)` selectors to adjust specificity.
+- Updated `@csstools/postcss-progressive-custom-properties` to `1.1.0`.
 
-### 1.0.1 (May 17, 2022)
-
-- Process CSS after most other plugins to ensure correct analysis and transformation of sugary CSS.
-- Fix selector order with `:before` and other pseudo elements.
-
-### 1.0.0 (May 12, 2022)
+### 1.0.0 (February 11, 2022)
 
 - Initial version

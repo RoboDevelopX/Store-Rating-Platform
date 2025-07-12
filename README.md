@@ -1,109 +1,55 @@
-# PostCSS Cascade Layers [<img src="https://postcss.github.io/postcss/logo.svg" alt="PostCSS Logo" width="90" height="90" align="right">][postcss]
+# PostCSS OKLab Function [<img src="https://postcss.github.io/postcss/logo.svg" alt="PostCSS Logo" width="90" height="90" align="right">][postcss]
 
-[<img alt="npm version" src="https://img.shields.io/npm/v/@csstools/postcss-cascade-layers.svg" height="20">][npm-url] [<img alt="CSS Standard Status" src="https://cssdb.org/images/badges/cascade-layers.svg" height="20">][css-url] [<img alt="Build Status" src="https://github.com/csstools/postcss-plugins/workflows/test/badge.svg" height="20">][cli-url] [<img alt="Discord" src="https://shields.io/badge/Discord-5865F2?logo=discord&logoColor=white">][discord]
+[<img alt="npm version" src="https://img.shields.io/npm/v/@csstools/postcss-oklab-function.svg" height="20">][npm-url]
+[<img alt="CSS Standard Status" src="https://cssdb.org/images/badges/oklab-function.svg" height="20">][css-url]
+[<img alt="Build Status" src="https://github.com/csstools/postcss-plugins/workflows/test/badge.svg" height="20">][cli-url]
+[<img alt="Discord" src="https://shields.io/badge/Discord-5865F2?logo=discord&logoColor=white">][discord]
 
-[PostCSS Cascade Layers] lets you use `@layer` following the [Cascade Layers Specification]. For more information on layers, checkout [A Complete Guide to CSS Cascade Layers] by Miriam Suzanne.
+[PostCSS OKLab Function] lets you use `oklab` and `oklch` color functions in
+CSS, following the [CSS Color] specification.
 
 ```pcss
-
-target {
-	color: purple;
+.test-oklab {
+	color: oklab(40% 0.001236 0.0039);
 }
 
-@layer {
-	target {
-		color: green;
-	}
+.test-oklch {
+	color: oklch(40% 0.268735435 34.568626);
 }
-
 
 /* becomes */
 
-
-target:not(#\#) {
-	color: purple;
+.test-oklab {
+	color: rgb(73, 71, 69);
+	color: color(display-p3 0.28515 0.27983 0.27246);
 }
 
-target {
-		color: green;
-	}
-
-```
-
-## How it works
-
-[PostCSS Cascade Layers] creates "layers" of specificity.
-
-It applies extra specificity on all your styles based on :
-- the most specific selector found
-- the order in which layers are defined
-
-```css
-@layer A, B;
-
-@layer B {
-	.a-less-specific-selector {
-		/* styles */
-	}
-}
-
-@layer A {
-	#something #very-specific {
-		/* styles */
-	}
-}
-
-@layer C {
-	.a-less-specific-selector {
-		/* styles */
-	}
+.test-oklch {
+	color: rgb(131, 28, 0);
+	color: color(display-p3 0.49163 0.11178 0.00000);
 }
 ```
-
-most specific selector :
-- `#something #very-specific`
-- `[2, 0, 0]`
-- `2 + 1` -> `3` to ensure there is no overlap
-
-the order in which layers are defined :
-- `A`
-- `B`
-- `C`
-
-| layer | previous adjustment | specificity adjustment | selector |
-| ------ | ------ | ----------- | --- |
-| `A` | `0` | `0 + 0 = 0` | N/A |
-| `B` | `0` | `0 + 3 = 3` | `:not(#/#):not(#/#):not(#/#)` |
-| `C` | `3` | `3 + 3 = 6` | `:not(#/#):not(#/#):not(#/#):not(#/#):not(#/#):not(#/#)` |
-
-This approach lets more important (later) layers always override less important (earlier) layers.<br>
-And layers have enough room internally so that each selector works and overrides as expected.
-
-More layers with more specificity will cause longer `:not(...)` selectors to be generated.
-
-⚠️ For this to work the plugin needs to analyze your entire stylesheet at once.<br>
-If you have different assets that are unaware of each other it will not work correctly as the analysis will be incorrect.
 
 ## Usage
 
-Add [PostCSS Cascade Layers] to your project:
+Add [PostCSS OKLab Function] to your project:
 
 ```bash
-npm install postcss @csstools/postcss-cascade-layers --save-dev
+npm install postcss @csstools/postcss-oklab-function --save-dev
 ```
 
 Use it as a [PostCSS] plugin:
 
 ```js
 const postcss = require('postcss');
-const postcssCascadeLayers = require('@csstools/postcss-cascade-layers');
+const postcssOKLabFunction = require('@csstools/postcss-oklab-function');
 
 postcss([
-	postcssCascadeLayers(/* pluginOptions */)
+  postcssOKLabFunction(/* pluginOptions */)
 ]).process(YOUR_CSS /*, processOptions */);
 ```
 
-[PostCSS Cascade Layers] runs in all Node environments, with special
+[PostCSS OKLab Function] runs in all Node environments, with special
 instructions for:
 
 | [Node](INSTALL.md#node) | [PostCSS CLI](INSTALL.md#postcss-cli) | [Webpack](INSTALL.md#webpack) | [Create React App](INSTALL.md#create-react-app) | [Gulp](INSTALL.md#gulp) | [Grunt](INSTALL.md#grunt) |
@@ -111,90 +57,127 @@ instructions for:
 
 ## Options
 
-### onRevertLayerKeyword
+### preserve
 
-The `onRevertLayerKeyword` option enables warnings if `revert-layer` is used.
-Transforming `revert-layer` for older browsers is not possible in this plugin.
-
-Defaults to `warn`
+The `preserve` option determines whether the original notation
+is preserved. By default, it is not preserved.
 
 ```js
-postcssCascadeLayers({ onRevertLayerKeyword: 'warn' }) // 'warn' | false
+postcssOKLabFunction({ preserve: true })
 ```
 
 ```pcss
-/* [postcss-cascade-layers]: handling "revert-layer" is unsupported by this plugin and will cause style differences between browser versions. */
-@layer {
-	.foo {
-		color: revert-layer;
-	}
+.test-oklab {
+	color: oklab(40% 0.001236 0.0039);
+}
+
+.test-oklch {
+	color: oklch(40% 0.268735435 34.568626);
+}
+
+/* becomes */
+
+.test-oklab {
+	color: rgb(73, 71, 69);
+	color: color(display-p3 0.28515 0.27983 0.27246);
+	color: oklab(40% 0.001236 0.0039);
+}
+
+.test-oklch {
+	color: rgb(131, 28, 0);
+	color: color(display-p3 0.49163 0.11178 0.00000);
+	color: oklch(40% 0.268735435 34.568626);
 }
 ```
 
-### onConditionalRulesChangingLayerOrder
+### enableProgressiveCustomProperties
 
-The `onConditionalRulesChangingLayerOrder` option enables warnings if layers are declared in multiple different orders in conditional rules.
-Transforming these layers correctly for older browsers is not possible in this plugin.
+The `enableProgressiveCustomProperties` option determines whether the original notation
+is wrapped with `@supports` when used in Custom Properties. By default, it is enabled.
 
-Defaults to `warn`
+⚠️ We only recommend disabling this when you set `preserve` to `false` or if you bring your own fix for Custom Properties. See what the plugin does in its [README](https://github.com/csstools/postcss-plugins/tree/main/plugins/postcss-progressive-custom-properties#readme).
 
 ```js
-postcssCascadeLayers({ onConditionalRulesChangingLayerOrder: 'warn' }) // 'warn' | false
+postcssOKLabFunction({ enableProgressiveCustomProperties: false })
 ```
 
 ```pcss
-/* [postcss-cascade-layers]: handling different layer orders in conditional rules is unsupported by this plugin and will cause style differences between browser versions. */
-@media (min-width: 10px) {
-	@layer B {
-		.foo {
-			color: red;
-		}
-	}
+:root {
+	--firebrick: oklab(40% 0.234 0.39);
 }
 
-@layer A {
-	.foo {
-		color: pink;
-	}
-}
+/* becomes */
 
-@layer B {
-	.foo {
-		color: red;
-	}
+:root {
+	--firebrick: rgb(133, 0, 67); /* will never be used, not even in older browser */
+	--firebrick: color(display-p3 0.49890 0.00000 0.25954); /* will never be used, not even in older browser */
+	--firebrick: oklab(40% 0.234 0.39);
 }
 ```
 
-### onImportLayerRule
+### subFeatures
 
-The `@import` at-rule can also be used with cascade layers, specifically to create a new layer like so: 
-```css
-@import 'theme.css' layer(utilities);
-```
-If your CSS uses `@import` with layers, you will also need the [postcss-import] plugin. This plugin alone will not handle the `@import` at-rule.  
+#### displayP3
 
-This plugin will warn you when it detects that [postcss-import] did not transform`@import` at-rules.
+The `subFeatures.displayP3` option determines if `color(display-p3 ...)` is used as a fallback.<br>
+By default, it is enabled.
+
+`display-p3` can display wider gamut colors than `rgb` on some devices.
 
 ```js
-postcssCascadeLayers({ onImportLayerRule: 'warn' }) // 'warn' | false
+postcssOKLabFunction({
+	subFeatures: {
+		displayP3: false
+	}
+})
 ```
 
-### Contributors
-The contributors to this plugin were [Olu Niyi-Awosusi] and [Sana Javed] from [Oddbird] and Romain Menke.
+```pcss
+.test-oklab {
+	color: oklab(40% 0.001236 0.0039);
+}
+
+.test-oklch {
+	color: oklch(40% 0.268735435 34.568626);
+}
+
+/* becomes */
+
+.test-oklab {
+	color: rgb(73, 71, 69);
+}
+
+.test-oklch {
+	color: rgb(131, 28, 0);
+}
+```
+
+## Out of gamut colors
+
+Depending on the browser implementation out of gamut colors may be clipped, resulting in a different color.<br>
+Fallback values generated by [PostCSS OKLab Function] are always mapped to a close alternative in sRGB.
+
+When setting `preserve` to `true` the original values will be used by some browsers and these may be clipped.<br>
+Certain browsers will have an incorrect color if this occurs.
+
+If the plugin detects out of gamut colors it will emit a warning :
+
+> "oklab(40% 0.234 0.39)" is out of gamut for "display-p3". When "preserve: true" is set this will lead to unexpected results in some browsers.
+
+To resolve this warning you can use a color that is in gamut for `display-p3`.
+
+## Copyright : color conversions
+
+This software or document includes material copied from or derived from https://github.com/w3c/csswg-drafts/tree/main/css-color-4. Copyright © 2022 W3C® (MIT, ERCIM, Keio, Beihang).
 
 [cli-url]: https://github.com/csstools/postcss-plugins/actions/workflows/test.yml?query=workflow/test
-[css-url]: https://cssdb.org/#cascade-layers
+[css-url]: https://cssdb.org/#oklab-function
 [discord]: https://discord.gg/bUadyRwkJS
-[npm-url]: https://www.npmjs.com/package/@csstools/postcss-cascade-layers
+[npm-url]: https://www.npmjs.com/package/@csstools/postcss-oklab-function
 
+[CSS Color]: https://www.w3.org/TR/css-color-4/#specifying-oklab-oklch
 [Gulp PostCSS]: https://github.com/postcss/gulp-postcss
 [Grunt PostCSS]: https://github.com/nDmitry/grunt-postcss
 [PostCSS]: https://github.com/postcss/postcss
 [PostCSS Loader]: https://github.com/postcss/postcss-loader
-[PostCSS Cascade Layers]: https://github.com/csstools/postcss-plugins/tree/main/plugins/postcss-cascade-layers
-[Cascade Layers Specification]: https://www.w3.org/TR/css-cascade-5/#layering
-[A Complete Guide to CSS Cascade Layers]: https://css-tricks.com/css-cascade-layers/
-[Olu Niyi-Awosusi]: https://github.com/oluoluoxenfree
-[Sana Javed]: https://github.com/sanajaved7
-[Oddbird]: https://github.com/oddbird
-[postcss-import]: https://github.com/postcss/postcss-import
+[PostCSS OKLab Function]: https://github.com/csstools/postcss-plugins/tree/main/plugins/postcss-oklab-function
