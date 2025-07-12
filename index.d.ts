@@ -1,10 +1,4 @@
-declare function setToStringTag(
-    object: object & { [Symbol.toStringTag]?: unknown },
-    value: string | unknown,
-    options?: {
-        force?: boolean;
-        nonConfigurable?: boolean;
-    },
-): void;
-
-export = setToStringTag;
+import type { PluginCreator } from 'postcss';
+import { pluginOptions } from './options';
+declare const creator: PluginCreator<pluginOptions>;
+export default creator;

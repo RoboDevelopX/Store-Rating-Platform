@@ -1,70 +1,200 @@
-# Getting Started with Create React App
+# PostCSS Cascade Layers [<img src="https://postcss.github.io/postcss/logo.svg" alt="PostCSS Logo" width="90" height="90" align="right">][postcss]
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[<img alt="npm version" src="https://img.shields.io/npm/v/@csstools/postcss-cascade-layers.svg" height="20">][npm-url] [<img alt="CSS Standard Status" src="https://cssdb.org/images/badges/cascade-layers.svg" height="20">][css-url] [<img alt="Build Status" src="https://github.com/csstools/postcss-plugins/workflows/test/badge.svg" height="20">][cli-url] [<img alt="Discord" src="https://shields.io/badge/Discord-5865F2?logo=discord&logoColor=white">][discord]
 
-## Available Scripts
+[PostCSS Cascade Layers] lets you use `@layer` following the [Cascade Layers Specification]. For more information on layers, checkout [A Complete Guide to CSS Cascade Layers] by Miriam Suzanne.
 
-In the project directory, you can run:
+```pcss
 
-### `npm start`
+target {
+	color: purple;
+}
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+@layer {
+	target {
+		color: green;
+	}
+}
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+/* becomes */
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+target:not(#\#) {
+	color: purple;
+}
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+target {
+		color: green;
+	}
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## How it works
 
-### `npm run eject`
+[PostCSS Cascade Layers] creates "layers" of specificity.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+It applies extra specificity on all your styles based on :
+- the most specific selector found
+- the order in which layers are defined
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```css
+@layer A, B;
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+@layer B {
+	.a-less-specific-selector {
+		/* styles */
+	}
+}
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+@layer A {
+	#something #very-specific {
+		/* styles */
+	}
+}
 
-## Learn More
+@layer C {
+	.a-less-specific-selector {
+		/* styles */
+	}
+}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+most specific selector :
+- `#something #very-specific`
+- `[2, 0, 0]`
+- `2 + 1` -> `3` to ensure there is no overlap
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+the order in which layers are defined :
+- `A`
+- `B`
+- `C`
 
-### Code Splitting
+| layer | previous adjustment | specificity adjustment | selector |
+| ------ | ------ | ----------- | --- |
+| `A` | `0` | `0 + 0 = 0` | N/A |
+| `B` | `0` | `0 + 3 = 3` | `:not(#/#):not(#/#):not(#/#)` |
+| `C` | `3` | `3 + 3 = 6` | `:not(#/#):not(#/#):not(#/#):not(#/#):not(#/#):not(#/#)` |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+This approach lets more important (later) layers always override less important (earlier) layers.<br>
+And layers have enough room internally so that each selector works and overrides as expected.
 
-### Analyzing the Bundle Size
+More layers with more specificity will cause longer `:not(...)` selectors to be generated.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+⚠️ For this to work the plugin needs to analyze your entire stylesheet at once.<br>
+If you have different assets that are unaware of each other it will not work correctly as the analysis will be incorrect.
 
-### Making a Progressive Web App
+## Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Add [PostCSS Cascade Layers] to your project:
 
-### Advanced Configuration
+```bash
+npm install postcss @csstools/postcss-cascade-layers --save-dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Use it as a [PostCSS] plugin:
 
-### Deployment
+```js
+const postcss = require('postcss');
+const postcssCascadeLayers = require('@csstools/postcss-cascade-layers');
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+postcss([
+	postcssCascadeLayers(/* pluginOptions */)
+]).process(YOUR_CSS /*, processOptions */);
+```
 
-### `npm run build` fails to minify
+[PostCSS Cascade Layers] runs in all Node environments, with special
+instructions for:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+| [Node](INSTALL.md#node) | [PostCSS CLI](INSTALL.md#postcss-cli) | [Webpack](INSTALL.md#webpack) | [Create React App](INSTALL.md#create-react-app) | [Gulp](INSTALL.md#gulp) | [Grunt](INSTALL.md#grunt) |
+| --- | --- | --- | --- | --- | --- |
+
+## Options
+
+### onRevertLayerKeyword
+
+The `onRevertLayerKeyword` option enables warnings if `revert-layer` is used.
+Transforming `revert-layer` for older browsers is not possible in this plugin.
+
+Defaults to `warn`
+
+```js
+postcssCascadeLayers({ onRevertLayerKeyword: 'warn' }) // 'warn' | false
+```
+
+```pcss
+/* [postcss-cascade-layers]: handling "revert-layer" is unsupported by this plugin and will cause style differences between browser versions. */
+@layer {
+	.foo {
+		color: revert-layer;
+	}
+}
+```
+
+### onConditionalRulesChangingLayerOrder
+
+The `onConditionalRulesChangingLayerOrder` option enables warnings if layers are declared in multiple different orders in conditional rules.
+Transforming these layers correctly for older browsers is not possible in this plugin.
+
+Defaults to `warn`
+
+```js
+postcssCascadeLayers({ onConditionalRulesChangingLayerOrder: 'warn' }) // 'warn' | false
+```
+
+```pcss
+/* [postcss-cascade-layers]: handling different layer orders in conditional rules is unsupported by this plugin and will cause style differences between browser versions. */
+@media (min-width: 10px) {
+	@layer B {
+		.foo {
+			color: red;
+		}
+	}
+}
+
+@layer A {
+	.foo {
+		color: pink;
+	}
+}
+
+@layer B {
+	.foo {
+		color: red;
+	}
+}
+```
+
+### onImportLayerRule
+
+The `@import` at-rule can also be used with cascade layers, specifically to create a new layer like so: 
+```css
+@import 'theme.css' layer(utilities);
+```
+If your CSS uses `@import` with layers, you will also need the [postcss-import] plugin. This plugin alone will not handle the `@import` at-rule.  
+
+This plugin will warn you when it detects that [postcss-import] did not transform`@import` at-rules.
+
+```js
+postcssCascadeLayers({ onImportLayerRule: 'warn' }) // 'warn' | false
+```
+
+### Contributors
+The contributors to this plugin were [Olu Niyi-Awosusi] and [Sana Javed] from [Oddbird] and Romain Menke.
+
+[cli-url]: https://github.com/csstools/postcss-plugins/actions/workflows/test.yml?query=workflow/test
+[css-url]: https://cssdb.org/#cascade-layers
+[discord]: https://discord.gg/bUadyRwkJS
+[npm-url]: https://www.npmjs.com/package/@csstools/postcss-cascade-layers
+
+[Gulp PostCSS]: https://github.com/postcss/gulp-postcss
+[Grunt PostCSS]: https://github.com/nDmitry/grunt-postcss
+[PostCSS]: https://github.com/postcss/postcss
+[PostCSS Loader]: https://github.com/postcss/postcss-loader
+[PostCSS Cascade Layers]: https://github.com/csstools/postcss-plugins/tree/main/plugins/postcss-cascade-layers
+[Cascade Layers Specification]: https://www.w3.org/TR/css-cascade-5/#layering
+[A Complete Guide to CSS Cascade Layers]: https://css-tricks.com/css-cascade-layers/
+[Olu Niyi-Awosusi]: https://github.com/oluoluoxenfree
+[Sana Javed]: https://github.com/sanajaved7
+[Oddbird]: https://github.com/oddbird
+[postcss-import]: https://github.com/postcss/postcss-import
