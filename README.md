@@ -1,55 +1,70 @@
-# es-errors <sup>[![Version Badge][npm-version-svg]][package-url]</sup>
+# Getting Started with Create React App
 
-[![github actions][actions-image]][actions-url]
-[![coverage][codecov-image]][codecov-url]
-[![License][license-image]][license-url]
-[![Downloads][downloads-image]][downloads-url]
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-[![npm badge][npm-badge-png]][package-url]
+## Available Scripts
 
-A simple cache for a few of the JS Error constructors.
+In the project directory, you can run:
 
-## Example
+### `npm start`
 
-```js
-const assert = require('assert');
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-const Base = require('es-errors');
-const Eval = require('es-errors/eval');
-const Range = require('es-errors/range');
-const Ref = require('es-errors/ref');
-const Syntax = require('es-errors/syntax');
-const Type = require('es-errors/type');
-const URI = require('es-errors/uri');
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-assert.equal(Base, Error);
-assert.equal(Eval, EvalError);
-assert.equal(Range, RangeError);
-assert.equal(Ref, ReferenceError);
-assert.equal(Syntax, SyntaxError);
-assert.equal(Type, TypeError);
-assert.equal(URI, URIError);
-```
+### `npm test`
 
-## Tests
-Simply clone the repo, `npm install`, and run `npm test`
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-## Security
+### `npm run build`
 
-Please email [@ljharb](https://github.com/ljharb) or see https://tidelift.com/security if you have a potential security vulnerability to report.
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-[package-url]: https://npmjs.org/package/es-errors
-[npm-version-svg]: https://versionbadg.es/ljharb/es-errors.svg
-[deps-svg]: https://david-dm.org/ljharb/es-errors.svg
-[deps-url]: https://david-dm.org/ljharb/es-errors
-[dev-deps-svg]: https://david-dm.org/ljharb/es-errors/dev-status.svg
-[dev-deps-url]: https://david-dm.org/ljharb/es-errors#info=devDependencies
-[npm-badge-png]: https://nodei.co/npm/es-errors.png?downloads=true&stars=true
-[license-image]: https://img.shields.io/npm/l/es-errors.svg
-[license-url]: LICENSE
-[downloads-image]: https://img.shields.io/npm/dm/es-errors.svg
-[downloads-url]: https://npm-stat.com/charts.html?package=es-errors
-[codecov-image]: https://codecov.io/gh/ljharb/es-errors/branch/main/graphs/badge.svg
-[codecov-url]: https://app.codecov.io/gh/ljharb/es-errors/
-[actions-image]: https://img.shields.io/endpoint?url=https://github-actions-badge-u3jn4tfpocch.runkit.sh/ljharb/es-errors
-[actions-url]: https://github.com/ljharb/es-errors/actions
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
+
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run eject`
+
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+
+## Learn More
+
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
