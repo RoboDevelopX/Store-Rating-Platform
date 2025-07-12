@@ -4,4 +4,5 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-export declare type SourceMapRegistry = Map<string, string>;
+import type { TestResult } from '@jest/test-result';
+export default function getSnapshotStatus(snapshot: TestResult['snapshot'], afterUpdate: boolean): Array<string>;

@@ -1,303 +1,435 @@
-/*!
- * express
- * Copyright(c) 2009-2013 TJ Holowaychuk
- * Copyright(c) 2014-2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-
 'use strict';
 
-/**
- * Module dependencies.
- * @api private
- */
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+exports.wrapAnsiString =
+  exports.trimAndFormatPath =
+  exports.relativePath =
+  exports.printDisplayName =
+  exports.getSummary =
+  exports.formatTestPath =
+    void 0;
 
-var Buffer = require('safe-buffer').Buffer
-var contentDisposition = require('content-disposition');
-var contentType = require('content-type');
-var deprecate = require('depd')('express');
-var flatten = require('array-flatten');
-var mime = require('send').mime;
-var etag = require('etag');
-var proxyaddr = require('proxy-addr');
-var qs = require('qs');
-var querystring = require('querystring');
+function path() {
+  const data = _interopRequireWildcard(require('path'));
+
+  path = function () {
+    return data;
+  };
+
+  return data;
+}
+
+function _chalk() {
+  const data = _interopRequireDefault(require('chalk'));
+
+  _chalk = function () {
+    return data;
+  };
+
+  return data;
+}
+
+function _slash() {
+  const data = _interopRequireDefault(require('slash'));
+
+  _slash = function () {
+    return data;
+  };
+
+  return data;
+}
+
+function _jestUtil() {
+  const data = require('jest-util');
+
+  _jestUtil = function () {
+    return data;
+  };
+
+  return data;
+}
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {default: obj};
+}
+
+function _getRequireWildcardCache(nodeInterop) {
+  if (typeof WeakMap !== 'function') return null;
+  var cacheBabelInterop = new WeakMap();
+  var cacheNodeInterop = new WeakMap();
+  return (_getRequireWildcardCache = function (nodeInterop) {
+    return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+  })(nodeInterop);
+}
+
+function _interopRequireWildcard(obj, nodeInterop) {
+  if (!nodeInterop && obj && obj.__esModule) {
+    return obj;
+  }
+  if (obj === null || (typeof obj !== 'object' && typeof obj !== 'function')) {
+    return {default: obj};
+  }
+  var cache = _getRequireWildcardCache(nodeInterop);
+  if (cache && cache.has(obj)) {
+    return cache.get(obj);
+  }
+  var newObj = {};
+  var hasPropertyDescriptor =
+    Object.defineProperty && Object.getOwnPropertyDescriptor;
+  for (var key in obj) {
+    if (key !== 'default' && Object.prototype.hasOwnProperty.call(obj, key)) {
+      var desc = hasPropertyDescriptor
+        ? Object.getOwnPropertyDescriptor(obj, key)
+        : null;
+      if (desc && (desc.get || desc.set)) {
+        Object.defineProperty(newObj, key, desc);
+      } else {
+        newObj[key] = obj[key];
+      }
+    }
+  }
+  newObj.default = obj;
+  if (cache) {
+    cache.set(obj, newObj);
+  }
+  return newObj;
+}
 
 /**
- * Return strong ETag for `body`.
+ * Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
  *
- * @param {String|Buffer} body
- * @param {String} [encoding]
- * @return {String}
- * @api private
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
+const PROGRESS_BAR_WIDTH = 40;
 
-exports.etag = createETagGenerator({ weak: false })
+const printDisplayName = config => {
+  const {displayName} = config;
 
-/**
- * Return weak ETag for `body`.
- *
- * @param {String|Buffer} body
- * @param {String} [encoding]
- * @return {String}
- * @api private
- */
+  const white = _chalk().default.reset.inverse.white;
 
-exports.wetag = createETagGenerator({ weak: true })
-
-/**
- * Check if `path` looks absolute.
- *
- * @param {String} path
- * @return {Boolean}
- * @api private
- */
-
-exports.isAbsolute = function(path){
-  if ('/' === path[0]) return true;
-  if (':' === path[1] && ('\\' === path[2] || '/' === path[2])) return true; // Windows device path
-  if ('\\\\' === path.substring(0, 2)) return true; // Microsoft Azure absolute path
-};
-
-/**
- * Flatten the given `arr`.
- *
- * @param {Array} arr
- * @return {Array}
- * @api private
- */
-
-exports.flatten = deprecate.function(flatten,
-  'utils.flatten: use array-flatten npm module instead');
-
-/**
- * Normalize the given `type`, for example "html" becomes "text/html".
- *
- * @param {String} type
- * @return {Object}
- * @api private
- */
-
-exports.normalizeType = function(type){
-  return ~type.indexOf('/')
-    ? acceptParams(type)
-    : { value: mime.lookup(type), params: {} };
-};
-
-/**
- * Normalize `types`, for example "html" becomes "text/html".
- *
- * @param {Array} types
- * @return {Array}
- * @api private
- */
-
-exports.normalizeTypes = function(types){
-  var ret = [];
-
-  for (var i = 0; i < types.length; ++i) {
-    ret.push(exports.normalizeType(types[i]));
+  if (!displayName) {
+    return '';
   }
 
-  return ret;
+  const {name, color} = displayName;
+  const chosenColor = _chalk().default.reset.inverse[color]
+    ? _chalk().default.reset.inverse[color]
+    : white;
+  return _chalk().default.supportsColor ? chosenColor(` ${name} `) : name;
 };
 
-/**
- * Generate Content-Disposition header appropriate for the filename.
- * non-ascii filenames are urlencoded and a filename* parameter is added
- *
- * @param {String} filename
- * @return {String}
- * @api private
- */
+exports.printDisplayName = printDisplayName;
 
-exports.contentDisposition = deprecate.function(contentDisposition,
-  'utils.contentDisposition: use content-disposition npm module instead');
+const trimAndFormatPath = (pad, config, testPath, columns) => {
+  const maxLength = columns - pad;
+  const relative = relativePath(config, testPath);
+  const {basename} = relative;
+  let {dirname} = relative; // length is ok
 
-/**
- * Parse accept params `str` returning an
- * object with `.value`, `.quality` and `.params`.
- *
- * @param {String} str
- * @return {Object}
- * @api private
- */
+  if ((dirname + path().sep + basename).length <= maxLength) {
+    return (0, _slash().default)(
+      _chalk().default.dim(dirname + path().sep) +
+        _chalk().default.bold(basename)
+    );
+  } // we can fit trimmed dirname and full basename
 
-function acceptParams (str) {
-  var parts = str.split(/ *; */);
-  var ret = { value: parts[0], quality: 1, params: {} }
+  const basenameLength = basename.length;
 
-  for (var i = 1; i < parts.length; ++i) {
-    var pms = parts[i].split(/ *= */);
-    if ('q' === pms[0]) {
-      ret.quality = parseFloat(pms[1]);
-    } else {
-      ret.params[pms[0]] = pms[1];
+  if (basenameLength + 4 < maxLength) {
+    const dirnameLength = maxLength - 4 - basenameLength;
+    dirname =
+      '...' + dirname.slice(dirname.length - dirnameLength, dirname.length);
+    return (0, _slash().default)(
+      _chalk().default.dim(dirname + path().sep) +
+        _chalk().default.bold(basename)
+    );
+  }
+
+  if (basenameLength + 4 === maxLength) {
+    return (0, _slash().default)(
+      _chalk().default.dim('...' + path().sep) + _chalk().default.bold(basename)
+    );
+  } // can't fit dirname, but can fit trimmed basename
+
+  return (0, _slash().default)(
+    _chalk().default.bold(
+      '...' + basename.slice(basename.length - maxLength - 4, basename.length)
+    )
+  );
+};
+
+exports.trimAndFormatPath = trimAndFormatPath;
+
+const formatTestPath = (config, testPath) => {
+  const {dirname, basename} = relativePath(config, testPath);
+  return (0, _slash().default)(
+    _chalk().default.dim(dirname + path().sep) + _chalk().default.bold(basename)
+  );
+};
+
+exports.formatTestPath = formatTestPath;
+
+const relativePath = (config, testPath) => {
+  // this function can be called with ProjectConfigs or GlobalConfigs. GlobalConfigs
+  // do not have config.cwd, only config.rootDir. Try using config.cwd, fallback
+  // to config.rootDir. (Also, some unit just use config.rootDir, which is ok)
+  testPath = path().relative(config.cwd || config.rootDir, testPath);
+  const dirname = path().dirname(testPath);
+  const basename = path().basename(testPath);
+  return {
+    basename,
+    dirname
+  };
+};
+
+exports.relativePath = relativePath;
+
+const getValuesCurrentTestCases = (currentTestCases = []) => {
+  let numFailingTests = 0;
+  let numPassingTests = 0;
+  let numPendingTests = 0;
+  let numTodoTests = 0;
+  let numTotalTests = 0;
+  currentTestCases.forEach(testCase => {
+    switch (testCase.testCaseResult.status) {
+      case 'failed': {
+        numFailingTests++;
+        break;
+      }
+
+      case 'passed': {
+        numPassingTests++;
+        break;
+      }
+
+      case 'skipped': {
+        numPendingTests++;
+        break;
+      }
+
+      case 'todo': {
+        numTodoTests++;
+        break;
+      }
+    }
+
+    numTotalTests++;
+  });
+  return {
+    numFailingTests,
+    numPassingTests,
+    numPendingTests,
+    numTodoTests,
+    numTotalTests
+  };
+};
+
+const getSummary = (aggregatedResults, options) => {
+  let runTime = (Date.now() - aggregatedResults.startTime) / 1000;
+
+  if (options && options.roundTime) {
+    runTime = Math.floor(runTime);
+  }
+
+  const valuesForCurrentTestCases = getValuesCurrentTestCases(
+    options === null || options === void 0 ? void 0 : options.currentTestCases
+  );
+  const estimatedTime = (options && options.estimatedTime) || 0;
+  const snapshotResults = aggregatedResults.snapshot;
+  const snapshotsAdded = snapshotResults.added;
+  const snapshotsFailed = snapshotResults.unmatched;
+  const snapshotsOutdated = snapshotResults.unchecked;
+  const snapshotsFilesRemoved = snapshotResults.filesRemoved;
+  const snapshotsDidUpdate = snapshotResults.didUpdate;
+  const snapshotsPassed = snapshotResults.matched;
+  const snapshotsTotal = snapshotResults.total;
+  const snapshotsUpdated = snapshotResults.updated;
+  const suitesFailed = aggregatedResults.numFailedTestSuites;
+  const suitesPassed = aggregatedResults.numPassedTestSuites;
+  const suitesPending = aggregatedResults.numPendingTestSuites;
+  const suitesRun = suitesFailed + suitesPassed;
+  const suitesTotal = aggregatedResults.numTotalTestSuites;
+  const testsFailed = aggregatedResults.numFailedTests;
+  const testsPassed = aggregatedResults.numPassedTests;
+  const testsPending = aggregatedResults.numPendingTests;
+  const testsTodo = aggregatedResults.numTodoTests;
+  const testsTotal = aggregatedResults.numTotalTests;
+  const width = (options && options.width) || 0;
+  const suites =
+    _chalk().default.bold('Test Suites: ') +
+    (suitesFailed
+      ? _chalk().default.bold.red(`${suitesFailed} failed`) + ', '
+      : '') +
+    (suitesPending
+      ? _chalk().default.bold.yellow(`${suitesPending} skipped`) + ', '
+      : '') +
+    (suitesPassed
+      ? _chalk().default.bold.green(`${suitesPassed} passed`) + ', '
+      : '') +
+    (suitesRun !== suitesTotal
+      ? suitesRun + ' of ' + suitesTotal
+      : suitesTotal) +
+    ' total';
+  const updatedTestsFailed =
+    testsFailed + valuesForCurrentTestCases.numFailingTests;
+  const updatedTestsPending =
+    testsPending + valuesForCurrentTestCases.numPendingTests;
+  const updatedTestsTodo = testsTodo + valuesForCurrentTestCases.numTodoTests;
+  const updatedTestsPassed =
+    testsPassed + valuesForCurrentTestCases.numPassingTests;
+  const updatedTestsTotal =
+    testsTotal + valuesForCurrentTestCases.numTotalTests;
+  const tests =
+    _chalk().default.bold('Tests:       ') +
+    (updatedTestsFailed > 0
+      ? _chalk().default.bold.red(`${updatedTestsFailed} failed`) + ', '
+      : '') +
+    (updatedTestsPending > 0
+      ? _chalk().default.bold.yellow(`${updatedTestsPending} skipped`) + ', '
+      : '') +
+    (updatedTestsTodo > 0
+      ? _chalk().default.bold.magenta(`${updatedTestsTodo} todo`) + ', '
+      : '') +
+    (updatedTestsPassed > 0
+      ? _chalk().default.bold.green(`${updatedTestsPassed} passed`) + ', '
+      : '') +
+    `${updatedTestsTotal} total`;
+  const snapshots =
+    _chalk().default.bold('Snapshots:   ') +
+    (snapshotsFailed
+      ? _chalk().default.bold.red(`${snapshotsFailed} failed`) + ', '
+      : '') +
+    (snapshotsOutdated && !snapshotsDidUpdate
+      ? _chalk().default.bold.yellow(`${snapshotsOutdated} obsolete`) + ', '
+      : '') +
+    (snapshotsOutdated && snapshotsDidUpdate
+      ? _chalk().default.bold.green(`${snapshotsOutdated} removed`) + ', '
+      : '') +
+    (snapshotsFilesRemoved && !snapshotsDidUpdate
+      ? _chalk().default.bold.yellow(
+          (0, _jestUtil().pluralize)('file', snapshotsFilesRemoved) +
+            ' obsolete'
+        ) + ', '
+      : '') +
+    (snapshotsFilesRemoved && snapshotsDidUpdate
+      ? _chalk().default.bold.green(
+          (0, _jestUtil().pluralize)('file', snapshotsFilesRemoved) + ' removed'
+        ) + ', '
+      : '') +
+    (snapshotsUpdated
+      ? _chalk().default.bold.green(`${snapshotsUpdated} updated`) + ', '
+      : '') +
+    (snapshotsAdded
+      ? _chalk().default.bold.green(`${snapshotsAdded} written`) + ', '
+      : '') +
+    (snapshotsPassed
+      ? _chalk().default.bold.green(`${snapshotsPassed} passed`) + ', '
+      : '') +
+    `${snapshotsTotal} total`;
+  const time = renderTime(runTime, estimatedTime, width);
+  return [suites, tests, snapshots, time].join('\n');
+};
+
+exports.getSummary = getSummary;
+
+const renderTime = (runTime, estimatedTime, width) => {
+  // If we are more than one second over the estimated time, highlight it.
+  const renderedTime =
+    estimatedTime && runTime >= estimatedTime + 1
+      ? _chalk().default.bold.yellow((0, _jestUtil().formatTime)(runTime, 0))
+      : (0, _jestUtil().formatTime)(runTime, 0);
+  let time = _chalk().default.bold('Time:') + `        ${renderedTime}`;
+
+  if (runTime < estimatedTime) {
+    time += `, estimated ${(0, _jestUtil().formatTime)(estimatedTime, 0)}`;
+  } // Only show a progress bar if the test run is actually going to take
+  // some time.
+
+  if (estimatedTime > 2 && runTime < estimatedTime && width) {
+    const availableWidth = Math.min(PROGRESS_BAR_WIDTH, width);
+    const length = Math.min(
+      Math.floor((runTime / estimatedTime) * availableWidth),
+      availableWidth
+    );
+
+    if (availableWidth >= 2) {
+      time +=
+        '\n' +
+        _chalk().default.green('█').repeat(length) +
+        _chalk()
+          .default.white('█')
+          .repeat(availableWidth - length);
     }
   }
 
-  return ret;
-}
+  return time;
+}; // word-wrap a string that contains ANSI escape sequences.
+// ANSI escape sequences do not add to the string length.
 
-/**
- * Compile "etag" value to function.
- *
- * @param  {Boolean|String|Function} val
- * @return {Function}
- * @api private
- */
-
-exports.compileETag = function(val) {
-  var fn;
-
-  if (typeof val === 'function') {
-    return val;
+const wrapAnsiString = (string, terminalWidth) => {
+  if (terminalWidth === 0) {
+    // if the terminal width is zero, don't bother word-wrapping
+    return string;
   }
 
-  switch (val) {
-    case true:
-    case 'weak':
-      fn = exports.wetag;
-      break;
-    case false:
-      break;
-    case 'strong':
-      fn = exports.etag;
-      break;
-    default:
-      throw new TypeError('unknown value for etag function: ' + val);
+  const ANSI_REGEXP = /[\u001b\u009b]\[\d{1,2}m/gu;
+  const tokens = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = ANSI_REGEXP.exec(string))) {
+    const ansi = match[0];
+    const index = match['index'];
+
+    if (index != lastIndex) {
+      tokens.push(['string', string.slice(lastIndex, index)]);
+    }
+
+    tokens.push(['ansi', ansi]);
+    lastIndex = index + ansi.length;
   }
 
-  return fn;
-}
-
-/**
- * Compile "query parser" value to function.
- *
- * @param  {String|Function} val
- * @return {Function}
- * @api private
- */
-
-exports.compileQueryParser = function compileQueryParser(val) {
-  var fn;
-
-  if (typeof val === 'function') {
-    return val;
+  if (lastIndex != string.length - 1) {
+    tokens.push(['string', string.slice(lastIndex, string.length)]);
   }
 
-  switch (val) {
-    case true:
-    case 'simple':
-      fn = querystring.parse;
-      break;
-    case false:
-      fn = newObject;
-      break;
-    case 'extended':
-      fn = parseExtendedQueryString;
-      break;
-    default:
-      throw new TypeError('unknown value for query parser function: ' + val);
-  }
+  let lastLineLength = 0;
+  return tokens
+    .reduce(
+      (lines, [kind, token]) => {
+        if (kind === 'string') {
+          if (lastLineLength + token.length > terminalWidth) {
+            while (token.length) {
+              const chunk = token.slice(0, terminalWidth - lastLineLength);
+              const remaining = token.slice(
+                terminalWidth - lastLineLength,
+                token.length
+              );
+              lines[lines.length - 1] += chunk;
+              lastLineLength += chunk.length;
+              token = remaining;
 
-  return fn;
-}
+              if (token.length) {
+                lines.push('');
+                lastLineLength = 0;
+              }
+            }
+          } else {
+            lines[lines.length - 1] += token;
+            lastLineLength += token.length;
+          }
+        } else {
+          lines[lines.length - 1] += token;
+        }
 
-/**
- * Compile "proxy trust" value to function.
- *
- * @param  {Boolean|String|Number|Array|Function} val
- * @return {Function}
- * @api private
- */
-
-exports.compileTrust = function(val) {
-  if (typeof val === 'function') return val;
-
-  if (val === true) {
-    // Support plain true/false
-    return function(){ return true };
-  }
-
-  if (typeof val === 'number') {
-    // Support trusting hop count
-    return function(a, i){ return i < val };
-  }
-
-  if (typeof val === 'string') {
-    // Support comma-separated values
-    val = val.split(',')
-      .map(function (v) { return v.trim() })
-  }
-
-  return proxyaddr.compile(val || []);
-}
-
-/**
- * Set the charset in a given Content-Type string.
- *
- * @param {String} type
- * @param {String} charset
- * @return {String}
- * @api private
- */
-
-exports.setCharset = function setCharset(type, charset) {
-  if (!type || !charset) {
-    return type;
-  }
-
-  // parse type
-  var parsed = contentType.parse(type);
-
-  // set charset
-  parsed.parameters.charset = charset;
-
-  // format type
-  return contentType.format(parsed);
+        return lines;
+      },
+      ['']
+    )
+    .join('\n');
 };
 
-/**
- * Create an ETag generator function, generating ETags with
- * the given options.
- *
- * @param {object} options
- * @return {function}
- * @private
- */
-
-function createETagGenerator (options) {
-  return function generateETag (body, encoding) {
-    var buf = !Buffer.isBuffer(body)
-      ? Buffer.from(body, encoding)
-      : body
-
-    return etag(buf, options)
-  }
-}
-
-/**
- * Parse an extended query string with qs.
- *
- * @param {String} str
- * @return {Object}
- * @private
- */
-
-function parseExtendedQueryString(str) {
-  return qs.parse(str, {
-    allowPrototypes: true
-  });
-}
-
-/**
- * Return new empty object.
- *
- * @return {Object}
- * @api private
- */
-
-function newObject() {
-  return {};
-}
+exports.wrapAnsiString = wrapAnsiString;
