@@ -1,233 +1,280 @@
-# asynckit [![NPM Module](https://img.shields.io/npm/v/asynckit.svg?style=flat)](https://www.npmjs.com/package/asynckit)
+# BSON parser
 
-Minimal async jobs utility library, with streams support.
+BSON is short for "Binary JSON," and is the binary-encoded serialization of JSON-like documents.
+You can learn more about it in [the specification](http://bsonspec.org).
 
-[![PhantomJS Build](https://img.shields.io/travis/alexindigo/asynckit/v0.4.0.svg?label=browser&style=flat)](https://travis-ci.org/alexindigo/asynckit)
-[![Linux Build](https://img.shields.io/travis/alexindigo/asynckit/v0.4.0.svg?label=linux:0.12-6.x&style=flat)](https://travis-ci.org/alexindigo/asynckit)
-[![Windows Build](https://img.shields.io/appveyor/ci/alexindigo/asynckit/v0.4.0.svg?label=windows:0.12-6.x&style=flat)](https://ci.appveyor.com/project/alexindigo/asynckit)
+### Table of Contents
 
-[![Coverage Status](https://img.shields.io/coveralls/alexindigo/asynckit/v0.4.0.svg?label=code+coverage&style=flat)](https://coveralls.io/github/alexindigo/asynckit?branch=master)
-[![Dependency Status](https://img.shields.io/david/alexindigo/asynckit/v0.4.0.svg?style=flat)](https://david-dm.org/alexindigo/asynckit)
-[![bitHound Overall Score](https://www.bithound.io/github/alexindigo/asynckit/badges/score.svg)](https://www.bithound.io/github/alexindigo/asynckit)
-
-<!-- [![Readme](https://img.shields.io/badge/readme-tested-brightgreen.svg?style=flat)](https://www.npmjs.com/package/reamde) -->
-
-AsyncKit provides harness for `parallel` and `serial` iterators over list of items represented by arrays or objects.
-Optionally it accepts abort function (should be synchronously return by iterator for each item), and terminates left over jobs upon an error event. For specific iteration order built-in (`ascending` and `descending`) and custom sort helpers also supported, via `asynckit.serialOrdered` method.
-
-It ensures async operations to keep behavior more stable and prevent `Maximum call stack size exceeded` errors, from sync iterators.
-
-| compression        |     size |
-| :----------------- | -------: |
-| asynckit.js        | 12.34 kB |
-| asynckit.min.js    |  4.11 kB |
-| asynckit.min.js.gz |  1.47 kB |
+- [Usage](#usage)
+- [Bugs/Feature Requests](#bugs--feature-requests)
+- [Installation](#installation)
+- [Documentation](#documentation)
+- [FAQ](#faq)
 
 
-## Install
+### Release Integrity
+
+Releases are created automatically and signed using the [Node team's GPG key](https://pgp.mongodb.com/node-driver.asc). This applies to the git tag as well as all release packages provided as part of a GitHub release. To verify the provided packages, download the key and import it using gpg:
+
+```shell
+gpg --import node-driver.asc
+```
+
+The GitHub release contains a detached signature file for the NPM package (named
+`bson-X.Y.Z.tgz.sig`).
+
+The following command returns the link npm package. 
+```shell
+npm view bson@vX.Y.Z dist.tarball 
+```
+
+Using the result of the above command, a `curl` command can return the official npm package for the release.
+
+To verify the integrity of the downloaded package, run the following command:
+```shell
+gpg --verify bson-X.Y.Z.tgz.sig bson-X.Y.Z.tgz
+```
+
+>[!Note]
+No verification is done when using npm to install the package. The contents of the Github tarball and npm's tarball are identical.
+
+## Bugs / Feature Requests
+
+Think you've found a bug? Want to see a new feature in `bson`? Please open a case in our issue management tool, JIRA:
+
+1. Create an account and login: [jira.mongodb.org](https://jira.mongodb.org)
+2. Navigate to the NODE project: [jira.mongodb.org/browse/NODE](https://jira.mongodb.org/browse/NODE)
+3. Click **Create Issue** - Please provide as much information as possible about the issue and how to reproduce it.
+
+Bug reports in JIRA for the NODE driver project are **public**.
+
+## Usage
+
+To build a new version perform the following operations:
+
+```
+npm install
+npm run build
+```
+
+### Node.js or Bundling Usage
+
+When using a bundler or Node.js you can import bson using the package name:
+
+```js
+import { BSON, EJSON, ObjectId } from 'bson';
+// or:
+// const { BSON, EJSON, ObjectId } = require('bson');
+
+const bytes = BSON.serialize({ _id: new ObjectId() });
+console.log(bytes);
+const doc = BSON.deserialize(bytes);
+console.log(EJSON.stringify(doc));
+// {"_id":{"$oid":"..."}}
+```
+
+### Browser Usage
+
+If you are working directly in the browser without a bundler please use the `.mjs` bundle like so:
+
+```html
+<script type="module">
+  import { BSON, EJSON, ObjectId } from './lib/bson.mjs';
+
+  const bytes = BSON.serialize({ _id: new ObjectId() });
+  console.log(bytes);
+  const doc = BSON.deserialize(bytes);
+  console.log(EJSON.stringify(doc));
+  // {"_id":{"$oid":"..."}}
+</script>
+```
+
+## Installation
 
 ```sh
-$ npm install --save asynckit
+npm install bson
 ```
 
-## Examples
+### MongoDB Node.js Driver Version Compatibility
 
-### Parallel Jobs
+Only the following version combinations with the [MongoDB Node.js Driver](https://github.com/mongodb/node-mongodb-native) are considered stable.
 
-Runs iterator over provided array in parallel. Stores output in the `result` array,
-on the matching positions. In unlikely event of an error from one of the jobs,
-will terminate rest of the active jobs (if abort function is provided)
-and return error along with salvaged data to the main callback function.
+|               | `bson@1.x` | `bson@4.x` | `bson@5.x` | `bson@6.x` |
+| ------------- | ---------- | ---------- | ---------- | ---------- |
+| `mongodb@6.x` | N/A        | N/A        | N/A        | ✓          |
+| `mongodb@5.x` | N/A        | N/A        | ✓          | N/A        |
+| `mongodb@4.x` | N/A        | ✓          | N/A        | N/A        |
+| `mongodb@3.x` | ✓          | N/A        | N/A        | N/A        |
 
-#### Input Array
+## Documentation
 
-```javascript
-var parallel = require('asynckit').parallel
-  , assert   = require('assert')
-  ;
+### BSON
 
-var source         = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , expectedResult = [ 2, 2, 8, 32, 128, 64, 16, 4 ]
-  , expectedTarget = [ 1, 1, 2, 4, 8, 16, 32, 64 ]
-  , target         = []
-  ;
+[API documentation](https://mongodb.github.io/node-mongodb-native/Next/modules/BSON.html)
 
-parallel(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-});
+<a name="EJSON"></a>
 
-// async job accepts one element from the array
-// and a callback function
-function asyncJob(item, cb)
-{
-  // different delays (in ms) per item
-  var delay = item * 25;
+### EJSON
 
-  // pretend different jobs take different time to finish
-  // and not in consequential order
-  var timeoutId = setTimeout(function() {
-    target.push(item);
-    cb(null, item * 2);
-  }, delay);
+- [EJSON](#EJSON)
 
-  // allow to cancel "leftover" jobs upon error
-  // return function, invoking of which will abort this job
-  return clearTimeout.bind(null, timeoutId);
+  - [.parse(text, [options])](#EJSON.parse)
+
+  - [.stringify(value, [replacer], [space], [options])](#EJSON.stringify)
+
+  - [.serialize(bson, [options])](#EJSON.serialize)
+
+  - [.deserialize(ejson, [options])](#EJSON.deserialize)
+
+<a name="EJSON.parse"></a>
+
+#### _EJSON_.parse(text, [options])
+
+| Param             | Type                 | Default           | Description                                                                        |
+| ----------------- | -------------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| text              | <code>string</code>  |                   |                                                                                    |
+| [options]         | <code>object</code>  |                   | Optional settings                                                                  |
+| [options.relaxed] | <code>boolean</code> | <code>true</code> | Attempt to return native JS types where possible, rather than BSON types (if true) |
+
+Parse an Extended JSON string, constructing the JavaScript value or object described by that
+string.
+
+**Example**
+
+```js
+const { EJSON } = require('bson');
+const text = '{ "int32": { "$numberInt": "10" } }';
+
+// prints { int32: { [String: '10'] _bsontype: 'Int32', value: '10' } }
+console.log(EJSON.parse(text, { relaxed: false }));
+
+// prints { int32: 10 }
+console.log(EJSON.parse(text));
+```
+
+<a name="EJSON.stringify"></a>
+
+#### _EJSON_.stringify(value, [replacer], [space], [options])
+
+| Param             | Type                                        | Default           | Description                                                                                                                                                                                                                                                                                                                                        |
+| ----------------- | ------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| value             | <code>object</code>                         |                   | The value to convert to extended JSON                                                                                                                                                                                                                                                                                                              |
+| [replacer]        | <code>function</code> \| <code>array</code> |                   | A function that alters the behavior of the stringification process, or an array of String and Number objects that serve as a whitelist for selecting/filtering the properties of the value object to be included in the JSON string. If this value is null or not provided, all properties of the object are included in the resulting JSON string |
+| [space]           | <code>string</code> \| <code>number</code>  |                   | A String or Number object that's used to insert white space into the output JSON string for readability purposes.                                                                                                                                                                                                                                  |
+| [options]         | <code>object</code>                         |                   | Optional settings                                                                                                                                                                                                                                                                                                                                  |
+| [options.relaxed] | <code>boolean</code>                        | <code>true</code> | Enabled Extended JSON's `relaxed` mode                                                                                                                                                                                                                                                                                                             |
+| [options.legacy]  | <code>boolean</code>                        | <code>true</code> | Output in Extended JSON v1                                                                                                                                                                                                                                                                                                                         |
+
+Converts a BSON document to an Extended JSON string, optionally replacing values if a replacer
+function is specified or optionally including only the specified properties if a replacer array
+is specified.
+
+**Example**
+
+```js
+const { EJSON } = require('bson');
+const Int32 = require('mongodb').Int32;
+const doc = { int32: new Int32(10) };
+
+// prints '{"int32":{"$numberInt":"10"}}'
+console.log(EJSON.stringify(doc, { relaxed: false }));
+
+// prints '{"int32":10}'
+console.log(EJSON.stringify(doc));
+```
+
+<a name="EJSON.serialize"></a>
+
+#### _EJSON_.serialize(bson, [options])
+
+| Param     | Type                | Description                                          |
+| --------- | ------------------- | ---------------------------------------------------- |
+| bson      | <code>object</code> | The object to serialize                              |
+| [options] | <code>object</code> | Optional settings passed to the `stringify` function |
+
+Serializes an object to an Extended JSON string, and reparse it as a JavaScript object.
+
+<a name="EJSON.deserialize"></a>
+
+#### _EJSON_.deserialize(ejson, [options])
+
+| Param     | Type                | Description                                  |
+| --------- | ------------------- | -------------------------------------------- |
+| ejson     | <code>object</code> | The Extended JSON object to deserialize      |
+| [options] | <code>object</code> | Optional settings passed to the parse method |
+
+Deserializes an Extended JSON object into a plain JavaScript object with native/BSON types
+
+## Error Handling
+
+It is our recommendation to use `BSONError.isBSONError()` checks on errors and to avoid relying on parsing `error.message` and `error.name` strings in your code. We guarantee `BSONError.isBSONError()` checks will pass according to semver guidelines, but errors may be sub-classed or their messages may change at any time, even patch releases, as we see fit to increase the helpfulness of the errors.
+
+Any new errors we add to the driver will directly extend an existing error class and no existing error will be moved to a different parent class outside of a major release.
+This means `BSONError.isBSONError()` will always be able to accurately capture the errors that our BSON library throws.
+
+Hypothetical example: A collection in our Db has an issue with UTF-8 data:
+
+```ts
+let documentCount = 0;
+const cursor = collection.find({}, { utf8Validation: true });
+try {
+  for await (const doc of cursor) documentCount += 1;
+} catch (error) {
+  if (BSONError.isBSONError(error)) {
+    console.log(`Found the troublemaker UTF-8!: ${documentCount} ${error.message}`);
+    return documentCount;
+  }
+  throw error;
 }
 ```
 
-More examples could be found in [test/test-parallel-array.js](test/test-parallel-array.js).
+## React Native
 
-#### Input Object
+BSON vendors the required polyfills for `TextEncoder`, `TextDecoder`, `atob`, `btoa` imported from React Native and therefore doesn't expect users to polyfill these. One additional polyfill, `crypto.getRandomValues` is recommended and can be installed with the following command:
 
-Also it supports named jobs, listed via object.
-
-```javascript
-var parallel = require('asynckit/parallel')
-  , assert   = require('assert')
-  ;
-
-var source         = { first: 1, one: 1, four: 4, sixteen: 16, sixtyFour: 64, thirtyTwo: 32, eight: 8, two: 2 }
-  , expectedResult = { first: 2, one: 2, four: 8, sixteen: 32, sixtyFour: 128, thirtyTwo: 64, eight: 16, two: 4 }
-  , expectedTarget = [ 1, 1, 2, 4, 8, 16, 32, 64 ]
-  , expectedKeys   = [ 'first', 'one', 'two', 'four', 'eight', 'sixteen', 'thirtyTwo', 'sixtyFour' ]
-  , target         = []
-  , keys           = []
-  ;
-
-parallel(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-  assert.deepEqual(keys, expectedKeys);
-});
-
-// supports full value, key, callback (shortcut) interface
-function asyncJob(item, key, cb)
-{
-  // different delays (in ms) per item
-  var delay = item * 25;
-
-  // pretend different jobs take different time to finish
-  // and not in consequential order
-  var timeoutId = setTimeout(function() {
-    keys.push(key);
-    target.push(item);
-    cb(null, item * 2);
-  }, delay);
-
-  // allow to cancel "leftover" jobs upon error
-  // return function, invoking of which will abort this job
-  return clearTimeout.bind(null, timeoutId);
-}
+```sh
+npm install --save react-native-get-random-values
 ```
 
-More examples could be found in [test/test-parallel-object.js](test/test-parallel-object.js).
+The following snippet should be placed at the top of the entrypoint (by default this is the root `index.js` file) for React Native projects using the BSON library. These lines must be placed for any code that imports `BSON`.
 
-### Serial Jobs
-
-Runs iterator over provided array sequentially. Stores output in the `result` array,
-on the matching positions. In unlikely event of an error from one of the jobs,
-will not proceed to the rest of the items in the list
-and return error along with salvaged data to the main callback function.
-
-#### Input Array
-
-```javascript
-var serial = require('asynckit/serial')
-  , assert = require('assert')
-  ;
-
-var source         = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , expectedResult = [ 2, 2, 8, 32, 128, 64, 16, 4 ]
-  , expectedTarget = [ 0, 1, 2, 3, 4, 5, 6, 7 ]
-  , target         = []
-  ;
-
-serial(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-});
-
-// extended interface (item, key, callback)
-// also supported for arrays
-function asyncJob(item, key, cb)
-{
-  target.push(key);
-
-  // it will be automatically made async
-  // even it iterator "returns" in the same event loop
-  cb(null, item * 2);
-}
+```typescript
+// Required Polyfills For ReactNative
+import 'react-native-get-random-values';
 ```
 
-More examples could be found in [test/test-serial-array.js](test/test-serial-array.js).
+Finally, import the `BSON` library like so:
 
-#### Input Object
-
-Also it supports named jobs, listed via object.
-
-```javascript
-var serial = require('asynckit').serial
-  , assert = require('assert')
-  ;
-
-var source         = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , expectedResult = [ 2, 2, 8, 32, 128, 64, 16, 4 ]
-  , expectedTarget = [ 0, 1, 2, 3, 4, 5, 6, 7 ]
-  , target         = []
-  ;
-
-var source         = { first: 1, one: 1, four: 4, sixteen: 16, sixtyFour: 64, thirtyTwo: 32, eight: 8, two: 2 }
-  , expectedResult = { first: 2, one: 2, four: 8, sixteen: 32, sixtyFour: 128, thirtyTwo: 64, eight: 16, two: 4 }
-  , expectedTarget = [ 1, 1, 4, 16, 64, 32, 8, 2 ]
-  , target         = []
-  ;
-
-
-serial(source, asyncJob, function(err, result)
-{
-  assert.deepEqual(result, expectedResult);
-  assert.deepEqual(target, expectedTarget);
-});
-
-// shortcut interface (item, callback)
-// works for object as well as for the arrays
-function asyncJob(item, cb)
-{
-  target.push(item);
-
-  // it will be automatically made async
-  // even it iterator "returns" in the same event loop
-  cb(null, item * 2);
-}
+```typescript
+import { BSON, EJSON } from 'bson';
 ```
 
-More examples could be found in [test/test-serial-object.js](test/test-serial-object.js).
+This will cause React Native to import the `node_modules/bson/lib/bson.rn.cjs` bundle (see the `"react-native"` setting we have in the `"exports"` section of our [package.json](./package.json).)
 
-_Note: Since _object_ is an _unordered_ collection of properties,
-it may produce unexpected results with sequential iterations.
-Whenever order of the jobs' execution is important please use `serialOrdered` method._
+### Technical Note about React Native module import
 
-### Ordered Serial Iterations
+The `"exports"` definition in our `package.json` will result in BSON's CommonJS bundle being imported in a React Native project instead of the ES module bundle. Importing the CommonJS bundle is necessary because BSON's ES module bundle of BSON uses top-level await, which is not supported syntax in [React Native's runtime hermes](https://hermesengine.dev/).
 
-TBD
+## FAQ
 
-For example [compare-property](compare-property) package.
+#### Why does `undefined` get converted to `null`?
 
-### Streaming interface
+The `undefined` BSON type has been [deprecated for many years](http://bsonspec.org/spec.html), so this library has dropped support for it. Use the `ignoreUndefined` option (for example, from the [driver](http://mongodb.github.io/node-mongodb-native/2.2/api/MongoClient.html#connect) ) to instead remove `undefined` keys.
 
-TBD
+#### How do I add custom serialization logic?
 
-## Want to Know More?
+This library looks for `toBSON()` functions on every path, and calls the `toBSON()` function to get the value to serialize.
 
-More examples can be found in [test folder](test/).
+```javascript
+const BSON = require('bson');
 
-Or open an [issue](https://github.com/alexindigo/asynckit/issues) with questions and/or suggestions.
+class CustomSerialize {
+  toBSON() {
+    return 42;
+  }
+}
 
-## License
-
-AsyncKit is licensed under the MIT license.
+const obj = { answer: new CustomSerialize() };
+// "{ answer: 42 }"
+console.log(BSON.deserialize(BSON.serialize(obj)));
+```
