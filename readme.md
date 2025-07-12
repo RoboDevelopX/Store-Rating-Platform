@@ -1,139 +1,99 @@
-# quick-lru [![Build Status](https://travis-ci.org/sindresorhus/quick-lru.svg?branch=master)](https://travis-ci.org/sindresorhus/quick-lru) [![Coverage Status](https://coveralls.io/repos/github/sindresorhus/quick-lru/badge.svg?branch=master)](https://coveralls.io/github/sindresorhus/quick-lru?branch=master)
+# camelcase [![Build Status](https://travis-ci.org/sindresorhus/camelcase.svg?branch=master)](https://travis-ci.org/sindresorhus/camelcase)
 
-> Simple [“Least Recently Used” (LRU) cache](https://en.m.wikipedia.org/wiki/Cache_replacement_policies#Least_Recently_Used_.28LRU.29)
-
-Useful when you need to cache something and limit memory usage.
-
-Inspired by the [`hashlru` algorithm](https://github.com/dominictarr/hashlru#algorithm), but instead uses [`Map`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Map) to support keys of any type, not just strings, and values can be `undefined`.
-
-## Install
-
-```
-$ npm install quick-lru
-```
-
-## Usage
-
-```js
-const QuickLRU = require('quick-lru');
-
-const lru = new QuickLRU({maxSize: 1000});
-
-lru.set('🦄', '🌈');
-
-lru.has('🦄');
-//=> true
-
-lru.get('🦄');
-//=> '🌈'
-```
-
-## API
-
-### new QuickLRU(options?)
-
-Returns a new instance.
-
-### options
-
-Type: `object`
-
-#### maxSize
-
-*Required*\
-Type: `number`
-
-The maximum number of items before evicting the least recently used items.
-
-#### maxAge
-
-Type: `number`\
-Default: `Infinity`
-
-The maximum number of milliseconds an item should remain in cache.
-By default maxAge will be Infinity, which means that items will never expire.
-
-Lazy expiration happens upon the next `write` or `read` call.
-
-Individual expiration of an item can be specified by the `set(key, value, options)` method.
-
-#### onEviction
-
-*Optional*\
-Type: `(key, value) => void`
-
-Called right before an item is evicted from the cache.
-
-Useful for side effects or for items like object URLs that need explicit cleanup (`revokeObjectURL`).
-
-### Instance
-
-The instance is [`iterable`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Iteration_protocols) so you can use it directly in a [`for…of`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Statements/for...of) loop.
-
-Both `key` and `value` can be of any type.
-
-#### .set(key, value, options?)
-
-Set an item. Returns the instance.
-
-Individual expiration of an item can be specified with the `maxAge` option. If not specified, the global `maxAge` value will be used in case it is specified on the constructor, otherwise the item will never expire.
-
-#### .get(key)
-
-Get an item.
-
-#### .has(key)
-
-Check if an item exists.
-
-#### .peek(key)
-
-Get an item without marking it as recently used.
-
-#### .delete(key)
-
-Delete an item.
-
-Returns `true` if the item is removed or `false` if the item doesn't exist.
-
-#### .clear()
-
-Delete all items.
-
-#### .resize(maxSize)
-
-Update the `maxSize`, discarding items as necessary. Insertion order is mostly preserved, though this is not a strong guarantee.
-
-Useful for on-the-fly tuning of cache sizes in live systems.
-
-#### .keys()
-
-Iterable for all the keys.
-
-#### .values()
-
-Iterable for all the values.
-
-#### .entriesAscending()
-
-Iterable for all entries, starting with the oldest (ascending in recency).
-
-#### .entriesDescending()
-
-Iterable for all entries, starting with the newest (descending in recency).
-
-#### .size
-
-The stored item count.
+> Convert a dash/dot/underscore/space separated string to camelCase or PascalCase: `foo-bar` → `fooBar`
 
 ---
 
 <div align="center">
 	<b>
-		<a href="https://tidelift.com/subscription/pkg/npm-quick-lru?utm_source=npm-quick-lru&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
+		<a href="https://tidelift.com/subscription/pkg/npm-camelcase?utm_source=npm-camelcase&utm_medium=referral&utm_campaign=readme">Get professional support for 'camelcase' with a Tidelift subscription</a>
 	</b>
 	<br>
 	<sub>
 		Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
 	</sub>
 </div>
+
+---
+
+## Install
+
+```
+$ npm install camelcase
+```
+
+
+## Usage
+
+```js
+const camelCase = require('camelcase');
+
+camelCase('foo-bar');
+//=> 'fooBar'
+
+camelCase('foo_bar');
+//=> 'fooBar'
+
+camelCase('Foo-Bar');
+//=> 'fooBar'
+
+camelCase('Foo-Bar', {pascalCase: true});
+//=> 'FooBar'
+
+camelCase('--foo.bar', {pascalCase: false});
+//=> 'fooBar'
+
+camelCase('foo bar');
+//=> 'fooBar'
+
+console.log(process.argv[3]);
+//=> '--foo-bar'
+camelCase(process.argv[3]);
+//=> 'fooBar'
+
+camelCase(['foo', 'bar']);
+//=> 'fooBar'
+
+camelCase(['__foo__', '--bar'], {pascalCase: true});
+//=> 'FooBar'
+```
+
+
+## API
+
+### camelCase(input, [options])
+
+#### input
+
+Type: `string` `string[]`
+
+String to convert to camel case.
+
+#### options
+
+Type: `Object`
+
+##### pascalCase
+
+Type: `boolean`<br>
+Default: `false`
+
+Uppercase the first character: `foo-bar` → `FooBar`
+
+
+## Security
+
+To report a security vulnerability, please use the [Tidelift security contact](https://tidelift.com/security). Tidelift will coordinate the fix and disclosure.
+
+
+## Related
+
+- [decamelize](https://github.com/sindresorhus/decamelize) - The inverse of this module
+- [uppercamelcase](https://github.com/SamVerschueren/uppercamelcase) - Like this module, but to PascalCase instead of camelCase
+- [titleize](https://github.com/sindresorhus/titleize) - Capitalize every word in string
+- [humanize-string](https://github.com/sindresorhus/humanize-string) - Convert a camelized/dasherized/underscored string into a humanized one
+
+
+## License
+
+MIT © [Sindre Sorhus](https://sindresorhus.com)
