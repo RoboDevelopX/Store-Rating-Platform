@@ -1,280 +1,317 @@
-# BSON parser
+# cookie
 
-BSON is short for "Binary JSON," and is the binary-encoded serialization of JSON-like documents.
-You can learn more about it in [the specification](http://bsonspec.org).
+[![NPM Version][npm-version-image]][npm-url]
+[![NPM Downloads][npm-downloads-image]][npm-url]
+[![Node.js Version][node-image]][node-url]
+[![Build Status][ci-image]][ci-url]
+[![Coverage Status][coveralls-image]][coveralls-url]
 
-### Table of Contents
-
-- [Usage](#usage)
-- [Bugs/Feature Requests](#bugs--feature-requests)
-- [Installation](#installation)
-- [Documentation](#documentation)
-- [FAQ](#faq)
-
-
-### Release Integrity
-
-Releases are created automatically and signed using the [Node team's GPG key](https://pgp.mongodb.com/node-driver.asc). This applies to the git tag as well as all release packages provided as part of a GitHub release. To verify the provided packages, download the key and import it using gpg:
-
-```shell
-gpg --import node-driver.asc
-```
-
-The GitHub release contains a detached signature file for the NPM package (named
-`bson-X.Y.Z.tgz.sig`).
-
-The following command returns the link npm package. 
-```shell
-npm view bson@vX.Y.Z dist.tarball 
-```
-
-Using the result of the above command, a `curl` command can return the official npm package for the release.
-
-To verify the integrity of the downloaded package, run the following command:
-```shell
-gpg --verify bson-X.Y.Z.tgz.sig bson-X.Y.Z.tgz
-```
-
->[!Note]
-No verification is done when using npm to install the package. The contents of the Github tarball and npm's tarball are identical.
-
-## Bugs / Feature Requests
-
-Think you've found a bug? Want to see a new feature in `bson`? Please open a case in our issue management tool, JIRA:
-
-1. Create an account and login: [jira.mongodb.org](https://jira.mongodb.org)
-2. Navigate to the NODE project: [jira.mongodb.org/browse/NODE](https://jira.mongodb.org/browse/NODE)
-3. Click **Create Issue** - Please provide as much information as possible about the issue and how to reproduce it.
-
-Bug reports in JIRA for the NODE driver project are **public**.
-
-## Usage
-
-To build a new version perform the following operations:
-
-```
-npm install
-npm run build
-```
-
-### Node.js or Bundling Usage
-
-When using a bundler or Node.js you can import bson using the package name:
-
-```js
-import { BSON, EJSON, ObjectId } from 'bson';
-// or:
-// const { BSON, EJSON, ObjectId } = require('bson');
-
-const bytes = BSON.serialize({ _id: new ObjectId() });
-console.log(bytes);
-const doc = BSON.deserialize(bytes);
-console.log(EJSON.stringify(doc));
-// {"_id":{"$oid":"..."}}
-```
-
-### Browser Usage
-
-If you are working directly in the browser without a bundler please use the `.mjs` bundle like so:
-
-```html
-<script type="module">
-  import { BSON, EJSON, ObjectId } from './lib/bson.mjs';
-
-  const bytes = BSON.serialize({ _id: new ObjectId() });
-  console.log(bytes);
-  const doc = BSON.deserialize(bytes);
-  console.log(EJSON.stringify(doc));
-  // {"_id":{"$oid":"..."}}
-</script>
-```
+Basic HTTP cookie parser and serializer for HTTP servers.
 
 ## Installation
 
-```sh
-npm install bson
-```
-
-### MongoDB Node.js Driver Version Compatibility
-
-Only the following version combinations with the [MongoDB Node.js Driver](https://github.com/mongodb/node-mongodb-native) are considered stable.
-
-|               | `bson@1.x` | `bson@4.x` | `bson@5.x` | `bson@6.x` |
-| ------------- | ---------- | ---------- | ---------- | ---------- |
-| `mongodb@6.x` | N/A        | N/A        | N/A        | ✓          |
-| `mongodb@5.x` | N/A        | N/A        | ✓          | N/A        |
-| `mongodb@4.x` | N/A        | ✓          | N/A        | N/A        |
-| `mongodb@3.x` | ✓          | N/A        | N/A        | N/A        |
-
-## Documentation
-
-### BSON
-
-[API documentation](https://mongodb.github.io/node-mongodb-native/Next/modules/BSON.html)
-
-<a name="EJSON"></a>
-
-### EJSON
-
-- [EJSON](#EJSON)
-
-  - [.parse(text, [options])](#EJSON.parse)
-
-  - [.stringify(value, [replacer], [space], [options])](#EJSON.stringify)
-
-  - [.serialize(bson, [options])](#EJSON.serialize)
-
-  - [.deserialize(ejson, [options])](#EJSON.deserialize)
-
-<a name="EJSON.parse"></a>
-
-#### _EJSON_.parse(text, [options])
-
-| Param             | Type                 | Default           | Description                                                                        |
-| ----------------- | -------------------- | ----------------- | ---------------------------------------------------------------------------------- |
-| text              | <code>string</code>  |                   |                                                                                    |
-| [options]         | <code>object</code>  |                   | Optional settings                                                                  |
-| [options.relaxed] | <code>boolean</code> | <code>true</code> | Attempt to return native JS types where possible, rather than BSON types (if true) |
-
-Parse an Extended JSON string, constructing the JavaScript value or object described by that
-string.
-
-**Example**
-
-```js
-const { EJSON } = require('bson');
-const text = '{ "int32": { "$numberInt": "10" } }';
-
-// prints { int32: { [String: '10'] _bsontype: 'Int32', value: '10' } }
-console.log(EJSON.parse(text, { relaxed: false }));
-
-// prints { int32: 10 }
-console.log(EJSON.parse(text));
-```
-
-<a name="EJSON.stringify"></a>
-
-#### _EJSON_.stringify(value, [replacer], [space], [options])
-
-| Param             | Type                                        | Default           | Description                                                                                                                                                                                                                                                                                                                                        |
-| ----------------- | ------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| value             | <code>object</code>                         |                   | The value to convert to extended JSON                                                                                                                                                                                                                                                                                                              |
-| [replacer]        | <code>function</code> \| <code>array</code> |                   | A function that alters the behavior of the stringification process, or an array of String and Number objects that serve as a whitelist for selecting/filtering the properties of the value object to be included in the JSON string. If this value is null or not provided, all properties of the object are included in the resulting JSON string |
-| [space]           | <code>string</code> \| <code>number</code>  |                   | A String or Number object that's used to insert white space into the output JSON string for readability purposes.                                                                                                                                                                                                                                  |
-| [options]         | <code>object</code>                         |                   | Optional settings                                                                                                                                                                                                                                                                                                                                  |
-| [options.relaxed] | <code>boolean</code>                        | <code>true</code> | Enabled Extended JSON's `relaxed` mode                                                                                                                                                                                                                                                                                                             |
-| [options.legacy]  | <code>boolean</code>                        | <code>true</code> | Output in Extended JSON v1                                                                                                                                                                                                                                                                                                                         |
-
-Converts a BSON document to an Extended JSON string, optionally replacing values if a replacer
-function is specified or optionally including only the specified properties if a replacer array
-is specified.
-
-**Example**
-
-```js
-const { EJSON } = require('bson');
-const Int32 = require('mongodb').Int32;
-const doc = { int32: new Int32(10) };
-
-// prints '{"int32":{"$numberInt":"10"}}'
-console.log(EJSON.stringify(doc, { relaxed: false }));
-
-// prints '{"int32":10}'
-console.log(EJSON.stringify(doc));
-```
-
-<a name="EJSON.serialize"></a>
-
-#### _EJSON_.serialize(bson, [options])
-
-| Param     | Type                | Description                                          |
-| --------- | ------------------- | ---------------------------------------------------- |
-| bson      | <code>object</code> | The object to serialize                              |
-| [options] | <code>object</code> | Optional settings passed to the `stringify` function |
-
-Serializes an object to an Extended JSON string, and reparse it as a JavaScript object.
-
-<a name="EJSON.deserialize"></a>
-
-#### _EJSON_.deserialize(ejson, [options])
-
-| Param     | Type                | Description                                  |
-| --------- | ------------------- | -------------------------------------------- |
-| ejson     | <code>object</code> | The Extended JSON object to deserialize      |
-| [options] | <code>object</code> | Optional settings passed to the parse method |
-
-Deserializes an Extended JSON object into a plain JavaScript object with native/BSON types
-
-## Error Handling
-
-It is our recommendation to use `BSONError.isBSONError()` checks on errors and to avoid relying on parsing `error.message` and `error.name` strings in your code. We guarantee `BSONError.isBSONError()` checks will pass according to semver guidelines, but errors may be sub-classed or their messages may change at any time, even patch releases, as we see fit to increase the helpfulness of the errors.
-
-Any new errors we add to the driver will directly extend an existing error class and no existing error will be moved to a different parent class outside of a major release.
-This means `BSONError.isBSONError()` will always be able to accurately capture the errors that our BSON library throws.
-
-Hypothetical example: A collection in our Db has an issue with UTF-8 data:
-
-```ts
-let documentCount = 0;
-const cursor = collection.find({}, { utf8Validation: true });
-try {
-  for await (const doc of cursor) documentCount += 1;
-} catch (error) {
-  if (BSONError.isBSONError(error)) {
-    console.log(`Found the troublemaker UTF-8!: ${documentCount} ${error.message}`);
-    return documentCount;
-  }
-  throw error;
-}
-```
-
-## React Native
-
-BSON vendors the required polyfills for `TextEncoder`, `TextDecoder`, `atob`, `btoa` imported from React Native and therefore doesn't expect users to polyfill these. One additional polyfill, `crypto.getRandomValues` is recommended and can be installed with the following command:
+This is a [Node.js](https://nodejs.org/en/) module available through the
+[npm registry](https://www.npmjs.com/). Installation is done using the
+[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
 
 ```sh
-npm install --save react-native-get-random-values
+$ npm install cookie
 ```
 
-The following snippet should be placed at the top of the entrypoint (by default this is the root `index.js` file) for React Native projects using the BSON library. These lines must be placed for any code that imports `BSON`.
+## API
 
-```typescript
-// Required Polyfills For ReactNative
-import 'react-native-get-random-values';
+```js
+var cookie = require('cookie');
 ```
 
-Finally, import the `BSON` library like so:
+### cookie.parse(str, options)
 
-```typescript
-import { BSON, EJSON } from 'bson';
+Parse an HTTP `Cookie` header string and returning an object of all cookie name-value pairs.
+The `str` argument is the string representing a `Cookie` header value and `options` is an
+optional object containing additional parsing options.
+
+```js
+var cookies = cookie.parse('foo=bar; equation=E%3Dmc%5E2');
+// { foo: 'bar', equation: 'E=mc^2' }
 ```
 
-This will cause React Native to import the `node_modules/bson/lib/bson.rn.cjs` bundle (see the `"react-native"` setting we have in the `"exports"` section of our [package.json](./package.json).)
+#### Options
 
-### Technical Note about React Native module import
+`cookie.parse` accepts these properties in the options object.
 
-The `"exports"` definition in our `package.json` will result in BSON's CommonJS bundle being imported in a React Native project instead of the ES module bundle. Importing the CommonJS bundle is necessary because BSON's ES module bundle of BSON uses top-level await, which is not supported syntax in [React Native's runtime hermes](https://hermesengine.dev/).
+##### decode
 
-## FAQ
+Specifies a function that will be used to decode a cookie's value. Since the value of a cookie
+has a limited character set (and must be a simple string), this function can be used to decode
+a previously-encoded cookie value into a JavaScript string or other object.
 
-#### Why does `undefined` get converted to `null`?
+The default function is the global `decodeURIComponent`, which will decode any URL-encoded
+sequences into their byte representations.
 
-The `undefined` BSON type has been [deprecated for many years](http://bsonspec.org/spec.html), so this library has dropped support for it. Use the `ignoreUndefined` option (for example, from the [driver](http://mongodb.github.io/node-mongodb-native/2.2/api/MongoClient.html#connect) ) to instead remove `undefined` keys.
+**note** if an error is thrown from this function, the original, non-decoded cookie value will
+be returned as the cookie's value.
 
-#### How do I add custom serialization logic?
+### cookie.serialize(name, value, options)
 
-This library looks for `toBSON()` functions on every path, and calls the `toBSON()` function to get the value to serialize.
+Serialize a cookie name-value pair into a `Set-Cookie` header string. The `name` argument is the
+name for the cookie, the `value` argument is the value to set the cookie to, and the `options`
+argument is an optional object containing additional serialization options.
 
-```javascript
-const BSON = require('bson');
+```js
+var setCookie = cookie.serialize('foo', 'bar');
+// foo=bar
+```
 
-class CustomSerialize {
-  toBSON() {
-    return 42;
+#### Options
+
+`cookie.serialize` accepts these properties in the options object.
+
+##### domain
+
+Specifies the value for the [`Domain` `Set-Cookie` attribute][rfc-6265-5.2.3]. By default, no
+domain is set, and most clients will consider the cookie to apply to only the current domain.
+
+##### encode
+
+Specifies a function that will be used to encode a cookie's value. Since value of a cookie
+has a limited character set (and must be a simple string), this function can be used to encode
+a value into a string suited for a cookie's value.
+
+The default function is the global `encodeURIComponent`, which will encode a JavaScript string
+into UTF-8 byte sequences and then URL-encode any that fall outside of the cookie range.
+
+##### expires
+
+Specifies the `Date` object to be the value for the [`Expires` `Set-Cookie` attribute][rfc-6265-5.2.1].
+By default, no expiration is set, and most clients will consider this a "non-persistent cookie" and
+will delete it on a condition like exiting a web browser application.
+
+**note** the [cookie storage model specification][rfc-6265-5.3] states that if both `expires` and
+`maxAge` are set, then `maxAge` takes precedence, but it is possible not all clients by obey this,
+so if both are set, they should point to the same date and time.
+
+##### httpOnly
+
+Specifies the `boolean` value for the [`HttpOnly` `Set-Cookie` attribute][rfc-6265-5.2.6]. When truthy,
+the `HttpOnly` attribute is set, otherwise it is not. By default, the `HttpOnly` attribute is not set.
+
+**note** be careful when setting this to `true`, as compliant clients will not allow client-side
+JavaScript to see the cookie in `document.cookie`.
+
+##### maxAge
+
+Specifies the `number` (in seconds) to be the value for the [`Max-Age` `Set-Cookie` attribute][rfc-6265-5.2.2].
+The given number will be converted to an integer by rounding down. By default, no maximum age is set.
+
+**note** the [cookie storage model specification][rfc-6265-5.3] states that if both `expires` and
+`maxAge` are set, then `maxAge` takes precedence, but it is possible not all clients by obey this,
+so if both are set, they should point to the same date and time.
+
+##### partitioned
+
+Specifies the `boolean` value for the [`Partitioned` `Set-Cookie`](rfc-cutler-httpbis-partitioned-cookies)
+attribute. When truthy, the `Partitioned` attribute is set, otherwise it is not. By default, the
+`Partitioned` attribute is not set.
+
+**note** This is an attribute that has not yet been fully standardized, and may change in the future.
+This also means many clients may ignore this attribute until they understand it.
+
+More information about can be found in [the proposal](https://github.com/privacycg/CHIPS).
+
+##### path
+
+Specifies the value for the [`Path` `Set-Cookie` attribute][rfc-6265-5.2.4]. By default, the path
+is considered the ["default path"][rfc-6265-5.1.4].
+
+##### priority
+
+Specifies the `string` to be the value for the [`Priority` `Set-Cookie` attribute][rfc-west-cookie-priority-00-4.1].
+
+  - `'low'` will set the `Priority` attribute to `Low`.
+  - `'medium'` will set the `Priority` attribute to `Medium`, the default priority when not set.
+  - `'high'` will set the `Priority` attribute to `High`.
+
+More information about the different priority levels can be found in
+[the specification][rfc-west-cookie-priority-00-4.1].
+
+**note** This is an attribute that has not yet been fully standardized, and may change in the future.
+This also means many clients may ignore this attribute until they understand it.
+
+##### sameSite
+
+Specifies the `boolean` or `string` to be the value for the [`SameSite` `Set-Cookie` attribute][rfc-6265bis-09-5.4.7].
+
+  - `true` will set the `SameSite` attribute to `Strict` for strict same site enforcement.
+  - `false` will not set the `SameSite` attribute.
+  - `'lax'` will set the `SameSite` attribute to `Lax` for lax same site enforcement.
+  - `'none'` will set the `SameSite` attribute to `None` for an explicit cross-site cookie.
+  - `'strict'` will set the `SameSite` attribute to `Strict` for strict same site enforcement.
+
+More information about the different enforcement levels can be found in
+[the specification][rfc-6265bis-09-5.4.7].
+
+**note** This is an attribute that has not yet been fully standardized, and may change in the future.
+This also means many clients may ignore this attribute until they understand it.
+
+##### secure
+
+Specifies the `boolean` value for the [`Secure` `Set-Cookie` attribute][rfc-6265-5.2.5]. When truthy,
+the `Secure` attribute is set, otherwise it is not. By default, the `Secure` attribute is not set.
+
+**note** be careful when setting this to `true`, as compliant clients will not send the cookie back to
+the server in the future if the browser does not have an HTTPS connection.
+
+## Example
+
+The following example uses this module in conjunction with the Node.js core HTTP server
+to prompt a user for their name and display it back on future visits.
+
+```js
+var cookie = require('cookie');
+var escapeHtml = require('escape-html');
+var http = require('http');
+var url = require('url');
+
+function onRequest(req, res) {
+  // Parse the query string
+  var query = url.parse(req.url, true, true).query;
+
+  if (query && query.name) {
+    // Set a new cookie with the name
+    res.setHeader('Set-Cookie', cookie.serialize('name', String(query.name), {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 7 // 1 week
+    }));
+
+    // Redirect back after setting cookie
+    res.statusCode = 302;
+    res.setHeader('Location', req.headers.referer || '/');
+    res.end();
+    return;
   }
+
+  // Parse the cookies on the request
+  var cookies = cookie.parse(req.headers.cookie || '');
+
+  // Get the visitor name set in the cookie
+  var name = cookies.name;
+
+  res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+
+  if (name) {
+    res.write('<p>Welcome back, <b>' + escapeHtml(name) + '</b>!</p>');
+  } else {
+    res.write('<p>Hello, new visitor!</p>');
+  }
+
+  res.write('<form method="GET">');
+  res.write('<input placeholder="enter your name" name="name"> <input type="submit" value="Set Name">');
+  res.end('</form>');
 }
 
-const obj = { answer: new CustomSerialize() };
-// "{ answer: 42 }"
-console.log(BSON.deserialize(BSON.serialize(obj)));
+http.createServer(onRequest).listen(3000);
 ```
+
+## Testing
+
+```sh
+$ npm test
+```
+
+## Benchmark
+
+```
+$ npm run bench
+
+> cookie@0.5.0 bench
+> node benchmark/index.js
+
+  node@18.18.2
+  acorn@8.10.0
+  ada@2.6.0
+  ares@1.19.1
+  brotli@1.0.9
+  cldr@43.1
+  icu@73.2
+  llhttp@6.0.11
+  modules@108
+  napi@9
+  nghttp2@1.57.0
+  nghttp3@0.7.0
+  ngtcp2@0.8.1
+  openssl@3.0.10+quic
+  simdutf@3.2.14
+  tz@2023c
+  undici@5.26.3
+  unicode@15.0
+  uv@1.44.2
+  uvwasi@0.0.18
+  v8@10.2.154.26-node.26
+  zlib@1.2.13.1-motley
+
+> node benchmark/parse-top.js
+
+  cookie.parse - top sites
+
+  14 tests completed.
+
+  parse accounts.google.com x 2,588,913 ops/sec ±0.74% (186 runs sampled)
+  parse apple.com           x 2,370,002 ops/sec ±0.69% (186 runs sampled)
+  parse cloudflare.com      x 2,213,102 ops/sec ±0.88% (188 runs sampled)
+  parse docs.google.com     x 2,194,157 ops/sec ±1.03% (184 runs sampled)
+  parse drive.google.com    x 2,265,084 ops/sec ±0.79% (187 runs sampled)
+  parse en.wikipedia.org    x   457,099 ops/sec ±0.81% (186 runs sampled)
+  parse linkedin.com        x   504,407 ops/sec ±0.89% (186 runs sampled)
+  parse maps.google.com     x 1,230,959 ops/sec ±0.98% (186 runs sampled)
+  parse microsoft.com       x   926,294 ops/sec ±0.88% (184 runs sampled)
+  parse play.google.com     x 2,311,338 ops/sec ±0.83% (185 runs sampled)
+  parse support.google.com  x 1,508,850 ops/sec ±0.86% (186 runs sampled)
+  parse www.google.com      x 1,022,582 ops/sec ±1.32% (182 runs sampled)
+  parse youtu.be            x   332,136 ops/sec ±1.02% (185 runs sampled)
+  parse youtube.com         x   323,833 ops/sec ±0.77% (183 runs sampled)
+
+> node benchmark/parse.js
+
+  cookie.parse - generic
+
+  6 tests completed.
+
+  simple      x 3,214,032 ops/sec ±1.61% (183 runs sampled)
+  decode      x   587,237 ops/sec ±1.16% (187 runs sampled)
+  unquote     x 2,954,618 ops/sec ±1.35% (183 runs sampled)
+  duplicates  x   857,008 ops/sec ±0.89% (187 runs sampled)
+  10 cookies  x   292,133 ops/sec ±0.89% (187 runs sampled)
+  100 cookies x    22,610 ops/sec ±0.68% (187 runs sampled)
+```
+
+## References
+
+- [RFC 6265: HTTP State Management Mechanism][rfc-6265]
+- [Same-site Cookies][rfc-6265bis-09-5.4.7]
+
+[rfc-cutler-httpbis-partitioned-cookies]: https://tools.ietf.org/html/draft-cutler-httpbis-partitioned-cookies/
+[rfc-west-cookie-priority-00-4.1]: https://tools.ietf.org/html/draft-west-cookie-priority-00#section-4.1
+[rfc-6265bis-09-5.4.7]: https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-09#section-5.4.7
+[rfc-6265]: https://tools.ietf.org/html/rfc6265
+[rfc-6265-5.1.4]: https://tools.ietf.org/html/rfc6265#section-5.1.4
+[rfc-6265-5.2.1]: https://tools.ietf.org/html/rfc6265#section-5.2.1
+[rfc-6265-5.2.2]: https://tools.ietf.org/html/rfc6265#section-5.2.2
+[rfc-6265-5.2.3]: https://tools.ietf.org/html/rfc6265#section-5.2.3
+[rfc-6265-5.2.4]: https://tools.ietf.org/html/rfc6265#section-5.2.4
+[rfc-6265-5.2.5]: https://tools.ietf.org/html/rfc6265#section-5.2.5
+[rfc-6265-5.2.6]: https://tools.ietf.org/html/rfc6265#section-5.2.6
+[rfc-6265-5.3]: https://tools.ietf.org/html/rfc6265#section-5.3
+
+## License
+
+[MIT](LICENSE)
+
+[ci-image]: https://badgen.net/github/checks/jshttp/cookie/master?label=ci
+[ci-url]: https://github.com/jshttp/cookie/actions/workflows/ci.yml
+[coveralls-image]: https://badgen.net/coveralls/c/github/jshttp/cookie/master
+[coveralls-url]: https://coveralls.io/r/jshttp/cookie?branch=master
+[node-image]: https://badgen.net/npm/node/cookie
+[node-url]: https://nodejs.org/en/download
+[npm-downloads-image]: https://badgen.net/npm/dm/cookie
+[npm-url]: https://npmjs.org/package/cookie
+[npm-version-image]: https://badgen.net/npm/v/cookie
