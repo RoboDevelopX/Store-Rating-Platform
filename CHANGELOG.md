@@ -1,42 +1,40 @@
-# Changes to Selector Specificity
+# Changelog
 
-### 2.2.0 (March 21, 2023)
+## [2.0.3](https://github.com/humanwhocodes/object-schema/compare/v2.0.2...v2.0.3) (2024-04-01)
 
-- Add support for:
-	- `::view-transition`
-	- `::view-transition-group(*)` and `::view-transition-group(name)`
-	- `::view-transition-image-par(*)` and `::view-transition-image-par(name)`
-	- `::view-transition-old(*)` and `::view-transition-old(name)`
-	- `::view-transition-new(*)` and `::view-transition-new(name)`
 
-### 2.1.1 (January 28, 2023)
+### Bug Fixes
 
-- Improve `types` declaration in `package.json`
+* Ensure test files are not including in package ([6eeb32c](https://github.com/humanwhocodes/object-schema/commit/6eeb32cc76a3e37d76b2990bd603d72061c816e0)), closes [#19](https://github.com/humanwhocodes/object-schema/issues/19)
 
-### 2.1.0 (January 19, 2023)
+## [2.0.2](https://github.com/humanwhocodes/object-schema/compare/v2.0.1...v2.0.2) (2024-01-10)
 
-- Add support for `::slotted`
-- Add support for `:host`
-- Add support for `:host-context`
 
-### 2.0.2 (July 8, 2022)
+### Bug Fixes
 
-- Fix case insensitive matching.
+* WrapperError should be an actual error ([2523f01](https://github.com/humanwhocodes/object-schema/commit/2523f014168167e5a40bb63e0cc03231b2c0f1bf))
 
-### 2.0.1 (June 10, 2022)
+## [2.0.1](https://github.com/humanwhocodes/object-schema/compare/v2.0.0...v2.0.1) (2023-10-20)
 
-- Fixed: Exception on `:nth-child` without arguments. [#439](https://github.com/csstools/postcss-plugins/issues/439)
 
-### 2.0.0 (June 4, 2022)
+### Bug Fixes
 
-- Breaking: use only named exports instead of `default`
-- Added: `compare(a, b)` function to compare selectors by specificity
+* Custom properties should be available on thrown errors ([6ca80b0](https://github.com/humanwhocodes/object-schema/commit/6ca80b001a4ffb678b9b5544fc53322117374376))
 
-```diff
-- `import selectorSpecificity from '@csstools/selector-specificity';`
-+ `import { selectorSpecificity } from '@csstools/selector-specificity';`
-```
+## [2.0.0](https://github.com/humanwhocodes/object-schema/compare/v1.2.1...v2.0.0) (2023-10-18)
 
-### 1.0.0 (April 26, 2022)
 
-- Initial version
+### ⚠ BREAKING CHANGES
+
+* Throw custom errors instead of generics.
+
+### Features
+
+* Throw custom errors instead of generics. ([c6c01d7](https://github.com/humanwhocodes/object-schema/commit/c6c01d71eb354bf7b1fb3e883c40f7bd9b61647c))
+
+### [1.2.1](https://www.github.com/humanwhocodes/object-schema/compare/v1.2.0...v1.2.1) (2021-11-02)
+
+
+### Bug Fixes
+
+* Never return original object from individual config ([5463c5c](https://www.github.com/humanwhocodes/object-schema/commit/5463c5c6d2cb35a7b7948dffc37c899a41d1775f))

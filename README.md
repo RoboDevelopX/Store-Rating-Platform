@@ -1,115 +1,234 @@
-# ESLintRC Library
+# JavaScript ObjectSchema Package
 
-This repository contains the legacy ESLintRC configuration file format for ESLint. This package is not intended for use outside of the ESLint ecosystem. It is ESLint-specific and not intended for use in other programs.
+by [Nicholas C. Zakas](https://humanwhocodes.com)
 
-**Note:** This package is frozen except for critical bug fixes as ESLint moves to a new config system.
+If you find this useful, please consider supporting my work with a [donation](https://humanwhocodes.com/donate).
+
+## Overview
+
+A JavaScript object merge/validation utility where you can define a different merge and validation strategy for each key. This is helpful when you need to validate complex data structures and then merge them in a way that is more complex than `Object.assign()`.
 
 ## Installation
 
-You can install the package as follows:
+You can install using either npm:
 
 ```
-npm install @eslint/eslintrc --save-dev
-
-# or
-
-yarn add @eslint/eslintrc -D
+npm install @humanwhocodes/object-schema
 ```
 
-## Usage (ESM)
+Or Yarn:
 
-The primary class in this package is `FlatCompat`, which is a utility to translate ESLintRC-style configs into flat configs. Here's how you use it inside of your `eslint.config.js` file:
+```
+yarn add @humanwhocodes/object-schema
+```
+
+## Usage
+
+Use CommonJS to get access to the `ObjectSchema` constructor:
 
 ```js
-import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js";
-import path from "path";
-import { fileURLToPath } from "url";
+const { ObjectSchema } = require("@humanwhocodes/object-schema");
 
-// mimic CommonJS variables -- not needed if using CommonJS
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const schema = new ObjectSchema({
 
-const compat = new FlatCompat({
-    baseDirectory: __dirname,                  // optional; default: process.cwd()
-    resolvePluginsRelativeTo: __dirname,       // optional
-    recommendedConfig: js.configs.recommended, // optional
-    allConfig: js.configs.all,                 // optional
+    // define a definition for the "downloads" key
+    downloads: {
+        required: true,
+        merge(value1, value2) {
+            return value1 + value2;
+        },
+        validate(value) {
+            if (typeof value !== "number") {
+                throw new Error("Expected downloads to be a number.");
+            }
+        }
+    },
+
+    // define a strategy for the "versions" key
+    version: {
+        required: true,
+        merge(value1, value2) {
+            return value1.concat(value2);
+        },
+        validate(value) {
+            if (!Array.isArray(value)) {
+                throw new Error("Expected versions to be an array.");
+            }
+        }
+    }
 });
 
-export default [
+const record1 = {
+    downloads: 25,
+    versions: [
+        "v1.0.0",
+        "v1.1.0",
+        "v1.2.0"
+    ]
+};
 
-    // mimic ESLintRC-style extends
-    ...compat.extends("standard", "example"),
+const record2 = {
+    downloads: 125,
+    versions: [
+        "v2.0.0",
+        "v2.1.0",
+        "v3.0.0"
+    ]
+};
 
-    // mimic environments
-    ...compat.env({
-        es2020: true,
-        node: true
-    }),
+// make sure the records are valid
+schema.validate(record1);
+schema.validate(record2);
 
-    // mimic plugins
-    ...compat.plugins("airbnb", "react"),
+// merge together (schema.merge() accepts any number of objects)
+const result = schema.merge(record1, record2);
 
-    // translate an entire config
-    ...compat.config({
-        plugins: ["airbnb", "react"],
-        extends: "standard",
-        env: {
-            es2020: true,
-            node: true
-        },
-        rules: {
-            semi: "error"
-        }
-    })
-];
+// result looks like this:
+
+const result = {
+    downloads: 75,
+    versions: [
+        "v1.0.0",
+        "v1.1.0",
+        "v1.2.0",
+        "v2.0.0",
+        "v2.1.0",
+        "v3.0.0"
+    ]
+};
 ```
 
-## Usage (CommonJS)
+## Tips and Tricks
 
-Using `FlatCompat` in CommonJS files is similar to ESM, but you'll use `require()` and `module.exports` instead of `import` and `export`. Here's how you use it inside of your `eslint.config.js` CommonJS file:
+### Named merge strategies
+
+Instead of specifying a `merge()` method, you can specify one of the following strings to use a default merge strategy:
+
+* `"assign"` - use `Object.assign()` to merge the two values into one object.
+* `"overwrite"` - the second value always replaces the first.
+* `"replace"` - the second value replaces the first if the second is not `undefined`.
+
+For example:
 
 ```js
-const { FlatCompat } = require("@eslint/eslintrc");
-const js = require("@eslint/js");
+const schema = new ObjectSchema({
+    name: {
+        merge: "replace",
+        validate() {}
+    }
+});
+```
 
-const compat = new FlatCompat({
-    baseDirectory: __dirname,                  // optional; default: process.cwd()
-    resolvePluginsRelativeTo: __dirname,       // optional
-    recommendedConfig: js.configs.recommended, // optional
-    allConfig: js.configs.all,                 // optional
+### Named validation strategies
+
+Instead of specifying a `validate()` method, you can specify one of the following strings to use a default validation strategy:
+
+* `"array"` - value must be an array.
+* `"boolean"` - value must be a boolean.
+* `"number"` - value must be a number.
+* `"object"` - value must be an object.
+* `"object?"` - value must be an object or null.
+* `"string"` - value must be a string.
+* `"string!"` - value must be a non-empty string.
+
+For example:
+
+```js
+const schema = new ObjectSchema({
+    name: {
+        merge: "replace",
+        validate: "string"
+    }
+});
+```
+
+### Subschemas
+
+If you are defining a key that is, itself, an object, you can simplify the process by using a subschema. Instead of defining `merge()` and `validate()`, assign a `schema` key that contains a schema definition, like this:
+
+```js
+const schema = new ObjectSchema({
+    name: {
+        schema: {
+            first: {
+                merge: "replace",
+                validate: "string"
+            },
+            last: {
+                merge: "replace",
+                validate: "string"
+            }
+        }
+    }
 });
 
-module.exports = [
-
-    // mimic ESLintRC-style extends
-    ...compat.extends("standard", "example"),
-
-    // mimic environments
-    ...compat.env({
-        es2020: true,
-        node: true
-    }),
-
-    // mimic plugins
-    ...compat.plugins("airbnb", "react"),
-
-    // translate an entire config
-    ...compat.config({
-        plugins: ["airbnb", "react"],
-        extends: "standard",
-        env: {
-            es2020: true,
-            node: true
-        },
-        rules: {
-            semi: "error"
-        }
-    })
-];
+schema.validate({
+    name: {
+        first: "n",
+        last: "z"
+    }
+});
 ```
+
+### Remove Keys During Merge
+
+If the merge strategy for a key returns `undefined`, then the key will not appear in the final object. For example:
+
+```js
+const schema = new ObjectSchema({
+    date: {
+        merge() {
+            return undefined;
+        },
+        validate(value) {
+            Date.parse(value);  // throws an error when invalid
+        }
+    }
+});
+
+const object1 = { date: "5/5/2005" };
+const object2 = { date: "6/6/2006" };
+
+const result = schema.merge(object1, object2);
+
+console.log("date" in result);  // false
+```
+
+### Requiring Another Key Be Present
+
+If you'd like the presence of one key to require the presence of another key, you can use the `requires` property to specify an array of other properties that any key requires. For example:
+
+```js
+const schema = new ObjectSchema();
+
+const schema = new ObjectSchema({
+    date: {
+        merge() {
+            return undefined;
+        },
+        validate(value) {
+            Date.parse(value);  // throws an error when invalid
+        }
+    },
+    time: {
+        requires: ["date"],
+        merge(first, second) {
+            return second;
+        },
+        validate(value) {
+            // ...
+        }
+    }
+});
+
+// throws error: Key "time" requires keys "date"
+schema.validate({
+    time: "13:45"
+});
+```
+
+In this example, even though `date` is an optional key, it is required to be present whenever `time` is present.
 
 ## License
 
-MIT License
+BSD 3-Clause

@@ -1,50 +1,29 @@
 'use strict';
 
-var test = require('tape');
+var Type = require('../type');
 
-var setDunderProto = require('../set');
+var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
-test('setDunderProto', { skip: !setDunderProto }, function (t) {
-	if (!setDunderProto) {
-		throw 'should never happen; this is just for type narrowing'; // eslint-disable-line no-throw-literal
-	}
+function resolveYamlSet(data) {
+  if (data === null) return true;
 
-	// @ts-expect-error
-	t['throws'](function () { setDunderProto(); }, TypeError, 'throws if no arguments');
-	// @ts-expect-error
-	t['throws'](function () { setDunderProto(undefined); }, TypeError, 'throws with undefined and nothing');
-	// @ts-expect-error
-	t['throws'](function () { setDunderProto(undefined, undefined); }, TypeError, 'throws with undefined and undefined');
-	// @ts-expect-error
-	t['throws'](function () { setDunderProto(null); }, TypeError, 'throws with null and undefined');
-	// @ts-expect-error
-	t['throws'](function () { setDunderProto(null, undefined); }, TypeError, 'throws with null and undefined');
+  var key, object = data;
 
-	/** @type {{ inherited?: boolean }} */
-	var obj = {};
-	t.ok('toString' in obj, 'object initially has toString');
+  for (key in object) {
+    if (_hasOwnProperty.call(object, key)) {
+      if (object[key] !== null) return false;
+    }
+  }
 
-	setDunderProto(obj, null);
-	t.notOk('toString' in obj, 'object no longer has toString');
+  return true;
+}
 
-	t.notOk('inherited' in obj, 'object lacks inherited property');
-	setDunderProto(obj, { inherited: true });
-	t.equal(obj.inherited, true, 'object has inherited property');
+function constructYamlSet(data) {
+  return data !== null ? data : {};
+}
 
-	t.end();
-});
-
-test('no dunder proto', { skip: !!setDunderProto }, function (t) {
-	if ('__proto__' in Object.prototype) {
-		t['throws'](
-			// @ts-expect-error
-			function () { ({}).__proto__ = null; }, // eslint-disable-line no-proto
-			Error,
-			'throws when setting Object.prototype.__proto__'
-		);
-	} else {
-		t.notOk('__proto__' in Object.prototype, 'no __proto__ in Object.prototype');
-	}
-
-	t.end();
+module.exports = new Type('tag:yaml.org,2002:set', {
+  kind: 'mapping',
+  resolve: resolveYamlSet,
+  construct: constructYamlSet
 });
