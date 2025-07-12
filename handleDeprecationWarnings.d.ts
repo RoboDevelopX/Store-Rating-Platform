@@ -4,5 +4,5 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-export { default as LegacyFakeTimers } from './legacyFakeTimers';
-export { default as ModernFakeTimers } from './modernFakeTimers';
+/// <reference types="node" />
+export default function handleDeprecationWarnings(pipe: NodeJS.WriteStream, stdin?: NodeJS.ReadStream): Promise<void>;

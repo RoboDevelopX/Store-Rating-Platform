@@ -4,17 +4,36 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-export declare type LogMessage = string;
-export declare type LogEntry = {
-    message: LogMessage;
-    origin: string;
-    type: LogType;
+import type { Test } from '@jest/test-result';
+import type { Config } from '@jest/types';
+import type { Context } from 'jest-runtime';
+export declare type Stats = {
+    roots: number;
+    testMatch: number;
+    testPathIgnorePatterns: number;
+    testRegex: number;
+    testPathPattern?: number;
 };
-export declare type LogCounters = {
-    [label: string]: number;
+export declare type TestRunData = Array<{
+    context: Context;
+    matches: {
+        allTests: number;
+        tests: Array<Test>;
+        total?: number;
+        stats?: Stats;
+    };
+}>;
+export declare type TestPathCases = Array<{
+    stat: keyof Stats;
+    isMatch: (path: Config.Path) => boolean;
+}>;
+export declare type TestPathCasesWithPathPattern = TestPathCases & {
+    testPathPattern: (path: Config.Path) => boolean;
 };
-export declare type LogTimers = {
-    [label: string]: Date;
+export declare type FilterResult = {
+    test: string;
+    message: string;
 };
-export declare type LogType = 'assert' | 'count' | 'debug' | 'dir' | 'dirxml' | 'error' | 'group' | 'groupCollapsed' | 'info' | 'log' | 'time' | 'warn';
-export declare type ConsoleBuffer = Array<LogEntry>;
+export declare type Filter = (testPaths: Array<string>) => Promise<{
+    filtered: Array<FilterResult>;
+}>;

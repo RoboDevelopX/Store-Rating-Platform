@@ -3,38 +3,22 @@
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-Object.defineProperty(exports, 'BufferedConsole', {
+Object.defineProperty(exports, 'LegacyFakeTimers', {
   enumerable: true,
   get: function () {
-    return _BufferedConsole.default;
+    return _legacyFakeTimers.default;
   }
 });
-Object.defineProperty(exports, 'CustomConsole', {
+Object.defineProperty(exports, 'ModernFakeTimers', {
   enumerable: true,
   get: function () {
-    return _CustomConsole.default;
-  }
-});
-Object.defineProperty(exports, 'NullConsole', {
-  enumerable: true,
-  get: function () {
-    return _NullConsole.default;
-  }
-});
-Object.defineProperty(exports, 'getConsoleOutput', {
-  enumerable: true,
-  get: function () {
-    return _getConsoleOutput.default;
+    return _modernFakeTimers.default;
   }
 });
 
-var _BufferedConsole = _interopRequireDefault(require('./BufferedConsole'));
+var _legacyFakeTimers = _interopRequireDefault(require('./legacyFakeTimers'));
 
-var _CustomConsole = _interopRequireDefault(require('./CustomConsole'));
-
-var _NullConsole = _interopRequireDefault(require('./NullConsole'));
-
-var _getConsoleOutput = _interopRequireDefault(require('./getConsoleOutput'));
+var _modernFakeTimers = _interopRequireDefault(require('./modernFakeTimers'));
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {default: obj};
